@@ -28,17 +28,15 @@ This document explains how to configure environment variables for SofenTrainer b
    GEMINI_API_KEY=your-api-key-here
    ```
 
-3. To use `.env.local` in IDE or command line, you have two options:
+3. The backend automatically loads `.env.local` and `.env` at startup through a Spring `EnvironmentPostProcessor`.
 
-   **Option A: Spring Boot with dotenv (Recommended)**
-   - The current setup expects environment variables to be set in your system
+4. If you prefer, you can still set variables directly in your IDE or shell:
 
-   **Option B: IDE Configuration**
-   - **VS Code**: Create `.vscode/launch.json` and add env vars
-   - **IntelliJ IDEA**: Run → Edit Configurations → Environment variables
-   - **Eclipse**: Run → Run Configurations → Environment tab
+- **VS Code**: Create `.vscode/launch.json` and add env vars
+- **IntelliJ IDEA**: Run → Edit Configurations → Environment variables
+- **Eclipse**: Run → Run Configurations → Environment tab
 
-4. Run the application:
+5. Run the application:
    ```bash
    ./mvnw spring-boot:run
    ```
