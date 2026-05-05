@@ -190,3 +190,39 @@ All endpoints returning JSON usually wrap responses in an `ApiResponse` structur
     ]
   }
   ```
+
+### 7.2 Interactive Schedule Adjustments (Chatbot Sync)
+- **Method**: `POST`
+- **URL**: `/api/recommendations/chat`
+- **Description**: Allows the user to modify their AI-generated schedule using natural language chat. The AI receives the current schedule state and the user's message, then returns a conversational response alongside the newly updated schedule data.
+- **Request Body** (JSON):
+  ```json
+  {
+    "userId": 1,
+    "message": "Bisakah jadwal hari Senin dipindah ke Selasa sore?",
+    "currentSchedule": [
+      {
+        "day": "Senin",
+        "startTime": "07:00",
+        "duration": 60,
+        "type": "Kardio",
+        "reason": "Sesuai pola latihan pagi hari kamu"
+      }
+    ]
+  }
+  ```
+- **Response** (JSON):
+  ```json
+  {
+    "aiMessage": "Tentu! Sesi Kardio kamu sudah saya pindahkan ke hari Selasa jam 16:00.",
+    "updatedSchedule": [
+      {
+        "day": "Selasa",
+        "startTime": "16:00",
+        "duration": 60,
+        "type": "Kardio",
+        "reason": "Sesuai pola latihan pagi hari kamu"
+      }
+    ]
+  }
+  ```
