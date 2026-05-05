@@ -22,15 +22,13 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private final ChatClient chatClient;
     private final BookingHistoryRepository historyRepository;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public RecommendationServiceImpl(
             ChatClient.Builder chatClientBuilder,
-            BookingHistoryRepository historyRepository,
-            ObjectMapper objectMapper) {
+            BookingHistoryRepository historyRepository) {
         this.chatClient = chatClientBuilder.build();
         this.historyRepository = historyRepository;
-        this.objectMapper = objectMapper;
     }
 
     @Override
