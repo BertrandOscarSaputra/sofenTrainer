@@ -11,7 +11,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('sofentrainer_token');
+      const token = localStorage.getItem('traino_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -26,8 +26,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('sofentrainer_token');
-      localStorage.removeItem('sofentrainer_user');
+      localStorage.removeItem('traino_token');
+      localStorage.removeItem('traino_user');
       window.location.href = '/login';
     }
     return Promise.reject(error);

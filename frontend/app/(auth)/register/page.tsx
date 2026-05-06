@@ -52,7 +52,7 @@ export default function RegisterPage() {
             <Dumbbell size={20} className="text-white" />
           </div>
           <span className="text-2xl font-bold text-white">
-            Sofen<span className="text-indigo-400">Trainer</span>
+            Trai<span className="text-indigo-400">no</span>
           </span>
         </Link>
       </div>

@@ -13,7 +13,7 @@ export default function Footer() {
                 <Dumbbell size={16} className="text-white" />
               </div>
               <span className="text-lg font-bold text-white">
-                Sofen<span className="text-indigo-400">Trainer</span>
+                Trai<span className="text-indigo-400">no</span>
               </span>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
@@ -45,7 +45,7 @@ export default function Footer() {
 
         <div className="mt-10 pt-6 border-t border-white/5 text-center">
           <p className="text-xs text-gray-600">
-            © {new Date().getFullYear()} SofenTrainer — Proyek Rekayasa Perangkat Lunak. Dibuat dengan ❤️
+            © {new Date().getFullYear()} Traino — Proyek Rekayasa Perangkat Lunak. Dibuat dengan ❤️
           </p>
         </div>
       </div>

@@ -3,10 +3,10 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'SofenTrainer — Booking Latihan + Rekomendasi AI',
+  title: 'Traino — Booking Latihan + Rekomendasi AI',
   description:
-    'Platform booking sesi latihan pribadi dengan trainer profesional. Dilengkapi rekomendasi jadwal berbasis AI yang mempelajari kebiasaan latihanmu.',
-  keywords: ['fitness', 'trainer', 'booking', 'AI', 'rekomendasi', 'latihan', 'gym'],
+    'Platform booking sesi latihan pribadi dengan trainer profesional dari Traino. Dilengkapi rekomendasi jadwal berbasis AI.',
+  keywords: ['fitness', 'trainer', 'booking', 'AI', 'rekomendasi', 'latihan', 'gym', 'Traino'],
 };
 
 export default function RootLayout({

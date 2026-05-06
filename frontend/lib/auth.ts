@@ -1,7 +1,7 @@
 import type { User } from './types';
 
-const TOKEN_KEY = 'sofentrainer_token';
-const USER_KEY = 'sofentrainer_user';
+const TOKEN_KEY = 'traino_token';
+const USER_KEY = 'traino_user';
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;

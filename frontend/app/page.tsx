@@ -102,19 +102,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 max-w-md mx-auto mt-16 animate-slide-up delay-400">
-            {[
-              { value: '50+', label: 'Trainer' },
-              { value: '1.2K', label: 'Sesi Selesai' },
-              { value: '4.8', label: 'Rating' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+
         </div>
       </section>
 
@@ -123,7 +111,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4" style={{ fontFamily: 'var(--font-heading)' }}>
-              Kenapa <span className="text-gradient">SofenTrainer</span>?
+              Kenapa <span className="text-gradient">Traino</span>?
             </h2>
             <p className="text-gray-400 max-w-lg mx-auto">
               Semua yang kamu butuhkan untuk mengatur jadwal latihan dengan efisien.

@@ -18,7 +18,7 @@ export default function Navbar() {
               <Dumbbell size={18} className="text-white" />
             </div>
             <span className="text-xl font-bold text-white tracking-tight">
-              Sofen<span className="text-indigo-400">Trainer</span>
+              Trai<span className="text-indigo-400">no</span>
             </span>
           </Link>
 

@@ -26,7 +26,7 @@ export default function Sidebar() {
             <Dumbbell size={18} className="text-white" />
           </div>
           <span className="text-lg font-bold text-white tracking-tight">
-            Sofen<span className="text-indigo-400">Trainer</span>
+            Trai<span className="text-indigo-400">no</span>
           </span>
         </Link>
       </div>
