@@ -8,6 +8,7 @@ export interface User {
   name: string;
   email: string;
   role: "ROLE_USER" | "ROLE_TRAINER" | "ROLE_ADMIN";
+  profilePictureUrl?: string;
   createdAt?: string;
 }
 
@@ -142,6 +143,7 @@ export interface TrainerManagementResponse {
   specialty: string;
   rating: number;
   isActive: boolean;
+  profilePictureUrl?: string;
   createdAt: string;
 }
 
@@ -153,4 +155,10 @@ export interface TrainerProfileResponse {
   specialty: string;
   rating: number;
   isActive: boolean;
+  profilePictureUrl?: string;
+}
+
+export interface ProfilePictureResponse {
+  url: string;
+  message: string;
 }

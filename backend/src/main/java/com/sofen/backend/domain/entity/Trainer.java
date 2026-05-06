@@ -45,6 +45,9 @@ public class Trainer {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @Column(length = 500)
+    private String profilePictureUrl;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -12,6 +12,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import Modal from "@/components/ui/Modal";
+import Avatar from "@/components/ui/Avatar";
 import { Edit, Trash2, Plus, Loader } from "lucide-react";
 
 export default function AdminTrainersPage() {
@@ -203,6 +204,9 @@ export default function AdminTrainersPage() {
             <thead>
               <tr className="border-b border-white/10">
                 <th className="text-left px-6 py-4 text-gray-400 font-semibold">
+                  Foto
+                </th>
+                <th className="text-left px-6 py-4 text-gray-400 font-semibold">
                   Nama
                 </th>
                 <th className="text-left px-6 py-4 text-gray-400 font-semibold">
@@ -228,6 +232,13 @@ export default function AdminTrainersPage() {
                   key={trainer.id}
                   className="border-b border-white/5 hover:bg-white/5 transition-colors"
                 >
+                  <td className="px-6 py-4">
+                    <Avatar
+                      src={trainer.profilePictureUrl}
+                      name={trainer.name}
+                      size="sm"
+                    />
+                  </td>
                   <td className="px-6 py-4 text-white">{trainer.name}</td>
                   <td className="px-6 py-4 text-gray-400">{trainer.email}</td>
                   <td className="px-6 py-4 text-gray-400">

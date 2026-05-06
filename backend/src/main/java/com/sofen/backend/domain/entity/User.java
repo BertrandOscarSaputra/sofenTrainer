@@ -43,6 +43,9 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserRole role = UserRole.USER;
 
+    @Column(length = 500)
+    private String profilePictureUrl;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

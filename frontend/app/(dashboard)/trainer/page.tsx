@@ -4,9 +4,12 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { trainerService } from "@/lib/trainerService";
+import { profileService } from "@/lib/profileService";
 import type { TrainerProfileResponse } from "@/lib/types";
 import Card from "@/components/ui/Card";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import Avatar from "@/components/ui/Avatar";
+import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { Calendar, Star, AlertCircle } from "lucide-react";
 
 export default function TrainerDashboard() {
@@ -15,6 +18,8 @@ export default function TrainerDashboard() {
   const [profile, setProfile] = useState<TrainerProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [uploadingPicture, setUploadingPicture] = useState(false);
 
   // Check authorization
   useEffect(() => {
@@ -43,6 +48,28 @@ export default function TrainerDashboard() {
     }
   }, [user]);
 
+  const handleUploadProfilePicture = async (file: File): Promise<string> => {
+    try {
+      setUploadingPicture(true);
+      setError("");
+      const response = await profileService.uploadTrainerProfilePicture(
+        profile!.id,
+        file,
+      );
+      setProfile((prev) =>
+        prev ? { ...prev, profilePictureUrl: response.url } : null,
+      );
+      setSuccess("Foto profil berhasil diupload");
+      setTimeout(() => setSuccess(""), 3000);
+      return response.url;
+    } catch (err: any) {
+      setError(err.message || "Gagal mengupload foto profil");
+      throw err;
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -70,6 +97,13 @@ export default function TrainerDashboard() {
         </div>
       )}
 
+      {/* Success Message */}
+      {success && (
+        <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400">
+          {success}
+        </div>
+      )}
+
       {/* Loading State */}
       {loading ? (
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -79,15 +113,22 @@ export default function TrainerDashboard() {
         <>
           {/* Profile Card */}
           <Card className="p-8 bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  {profile.name}
-                </h2>
-                <p className="text-gray-400 mb-4">{profile.specialty}</p>
-                {profile.bio && (
-                  <p className="text-gray-300 max-w-2xl">{profile.bio}</p>
-                )}
+            <div className="flex items-start gap-8 justify-between">
+              <div className="flex items-start gap-6">
+                <ProfilePictureUpload
+                  currentImage={profile.profilePictureUrl}
+                  onUpload={handleUploadProfilePicture}
+                  isLoading={uploadingPicture}
+                />
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-2">
+                    {profile.name}
+                  </h2>
+                  <p className="text-gray-400 mb-4">{profile.specialty}</p>
+                  {profile.bio && (
+                    <p className="text-gray-300 max-w-2xl">{profile.bio}</p>
+                  )}
+                </div>
               </div>
               <div className="text-right">
                 <div className="flex items-center gap-2 justify-end mb-4">

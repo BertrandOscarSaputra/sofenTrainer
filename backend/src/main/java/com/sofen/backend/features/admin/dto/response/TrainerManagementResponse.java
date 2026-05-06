@@ -14,6 +14,7 @@ public record TrainerManagementResponse(
         String specialty,
         BigDecimal rating,
         Boolean isActive,
+        String profilePictureUrl,
         LocalDateTime createdAt
 ) {
     public static TrainerManagementResponse from(Trainer trainer) {
@@ -27,6 +28,7 @@ public record TrainerManagementResponse(
                 trainer.getSpecialty(),
                 trainer.getRating(),
                 trainer.getIsActive(),
+                trainer.getProfilePictureUrl() != null ? trainer.getProfilePictureUrl() : user.getProfilePictureUrl(),
                 trainer.getCreatedAt()
         );
     }

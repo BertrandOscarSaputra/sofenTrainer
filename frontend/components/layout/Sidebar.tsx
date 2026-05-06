@@ -14,6 +14,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import Avatar from "@/components/ui/Avatar";
 
 const getNavItems = (role?: string) => {
   const baseItems = [
@@ -25,6 +26,7 @@ const getNavItems = (role?: string) => {
       ...baseItems,
       { href: "/booking", label: "Booking", icon: CalendarPlus },
       { href: "/recommendation", label: "Rekomendasi AI", icon: Sparkles },
+      { href: "/profile", label: "Profil", icon: LayoutDashboard },
     ];
   }
 
@@ -102,11 +104,16 @@ export default function Sidebar() {
 
       {/* User info + Logout */}
       <div className="px-3 py-4 border-t border-white/5">
-        <div className="px-4 py-3 rounded-xl bg-white/5 mb-3">
-          <p className="text-sm font-medium text-white truncate">
-            {user?.name || "User"}
-          </p>
-          <p className="text-xs text-gray-500 truncate">{user?.email || ""}</p>
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 mb-3">
+          <Avatar src={user?.profilePictureUrl} name={user?.name} size="sm" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white truncate">
+              {user?.name || "User"}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {user?.email || ""}
+            </p>
+          </div>
         </div>
         <button
           onClick={logout}
