@@ -16,7 +16,6 @@ public class ScheduleController {
 
     private final ScheduleService scheduleService;
 
-    // Endpoint untuk Trainer membuat jadwal baru: POST http://localhost:8080/api/schedules
     @PostMapping
     public ResponseEntity<ScheduleResponse> createSchedule(
             @Valid @RequestBody CreateScheduleRequest request) {
@@ -28,5 +27,10 @@ public class ScheduleController {
         ScheduleResponse response = scheduleService.createSchedule(currentTrainerId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/trainer/{trainerId}")
+    public ResponseEntity<java.util.List<ScheduleResponse>> getSchedulesByTrainerId(@PathVariable Long trainerId) {
+        return ResponseEntity.ok(scheduleService.getSchedulesByTrainerId(trainerId));
     }
 }

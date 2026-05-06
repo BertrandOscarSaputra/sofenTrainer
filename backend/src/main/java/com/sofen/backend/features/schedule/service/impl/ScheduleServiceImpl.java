@@ -53,4 +53,20 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .status(savedSchedule.getStatus())
                 .build();
     }
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<ScheduleResponse> getSchedulesByTrainerId(Long trainerId) {
+        return scheduleRepository.findByTrainerIdAndStatusOrderByDayOfWeekAscStartTimeAsc(
+                trainerId, ScheduleStatus.AVAILABLE)
+                .stream()
+                .map(s -> ScheduleResponse.builder()
+                        .id(s.getId())
+                        .trainerId(s.getTrainer().getId())
+                        .dayOfWeek(s.getDayOfWeek())
+                        .startTime(s.getStartTime())
+                        .endTime(s.getEndTime())
+                        .status(s.getStatus())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
