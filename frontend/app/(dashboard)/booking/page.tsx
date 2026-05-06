@@ -10,6 +10,7 @@ import ScheduleSlot from '@/components/ScheduleSlot';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import type { Trainer, Schedule } from '@/lib/types';
 import { getTrainers, getTrainerSchedules, createBooking } from '@/lib/bookingService';
+import { getErrorMessage } from '@/lib/api';
 
 const dayLabels: Record<string, string> = {
   MONDAY: 'Senin',
@@ -31,15 +32,20 @@ function BookingContent() {
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [notes, setNotes] = useState('');
   const [isLoadingTrainers, setIsLoadingTrainers] = useState(true);
   const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [trainerError, setTrainerError] = useState('');
+  const [scheduleError, setScheduleError] = useState('');
+  const [bookingError, setBookingError] = useState('');
 
   // Load trainers
   useEffect(() => {
     (async () => {
       setIsLoadingTrainers(true);
+      setTrainerError('');
       try {
         const data = await getTrainers();
         setTrainers(data);
@@ -53,8 +59,8 @@ function BookingContent() {
             setStep(2);
           }
         }
-      } catch {
-        console.error('Failed to load trainers');
+      } catch (err: unknown) {
+        setTrainerError(getErrorMessage(err, 'Gagal memuat daftar trainer. Pastikan backend sudah berjalan.'));
       } finally {
         setIsLoadingTrainers(false);
       }
@@ -66,6 +72,7 @@ function BookingContent() {
     if (!selectedTrainer) return;
     (async () => {
       setIsLoadingSchedules(true);
+      setScheduleError('');
       try {
         const data = await getTrainerSchedules(selectedTrainer.id);
         setSchedules(data);
@@ -83,8 +90,8 @@ function BookingContent() {
             setStep(3);
           }
         }
-      } catch {
-        console.error('Failed to load schedules');
+      } catch (err: unknown) {
+        setScheduleError(getErrorMessage(err, 'Gagal memuat jadwal trainer. Silakan coba lagi.'));
       } finally {
         setIsLoadingSchedules(false);
       }
@@ -105,17 +112,19 @@ function BookingContent() {
   const handleSubmit = async () => {
     if (!selectedTrainer || !selectedSchedule) return;
     setIsSubmitting(true);
+    setBookingError('');
     try {
       await createBooking({
         trainerId: selectedTrainer.id,
         scheduleId: selectedSchedule.id,
         bookedAt: new Date().toISOString(),
         durationMinutes: 60,
+        notes: notes.trim() || undefined,
       });
       setIsSuccess(true);
       setTimeout(() => router.push('/dashboard'), 2000);
-    } catch {
-      console.error('Booking failed');
+    } catch (err: unknown) {
+      setBookingError(getErrorMessage(err, 'Booking gagal. Jadwal mungkin sudah dipesan orang lain. Silakan pilih jadwal lain.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -216,6 +225,16 @@ function BookingContent() {
             <div className="py-20">
               <LoadingSpinner size="lg" label="Memuat trainer..." />
             </div>
+          ) : trainerError ? (
+            <Card className="text-center py-10">
+              <p className="text-red-400 mb-3">⚠️ {trainerError}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm text-indigo-400 hover:text-indigo-300 underline transition-colors"
+              >
+                Coba lagi
+              </button>
+            </Card>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredTrainers.map((trainer) => (
@@ -229,7 +248,7 @@ function BookingContent() {
             </div>
           )}
 
-          {!isLoadingTrainers && filteredTrainers.length === 0 && (
+          {!isLoadingTrainers && !trainerError && filteredTrainers.length === 0 && (
             <Card className="text-center py-10">
               <p className="text-gray-400">Tidak ada trainer yang cocok dengan pencarian &ldquo;{searchQuery}&rdquo;</p>
             </Card>
@@ -262,6 +281,13 @@ function BookingContent() {
             <div className="py-16">
               <LoadingSpinner size="lg" label="Memuat jadwal..." />
             </div>
+          ) : scheduleError ? (
+            <Card className="text-center py-10">
+              <p className="text-red-400 mb-3">⚠️ {scheduleError}</p>
+              <Button variant="outline" size="sm" onClick={() => setStep(1)}>
+                Pilih Trainer Lain
+              </Button>
+            </Card>
           ) : availableSchedules.length === 0 ? (
             <Card className="text-center py-10">
               <p className="text-gray-400 mb-4">Tidak ada jadwal tersedia untuk trainer ini.</p>
@@ -325,6 +351,29 @@ function BookingContent() {
                 <span className="text-sm font-semibold text-white">60 menit</span>
               </div>
             </div>
+
+            {/* ─── Catatan / Notes ─── */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Catatan <span className="text-gray-500">(opsional)</span>
+              </label>
+              <textarea
+                id="booking-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Contoh: Saya ingin fokus pada latihan kaki..."
+                rows={3}
+                maxLength={300}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all text-sm resize-none"
+              />
+              <p className="text-xs text-gray-600 mt-1 text-right">{notes.length}/300</p>
+            </div>
+
+            {bookingError && (
+              <div className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+                ⚠️ {bookingError}
+              </div>
+            )}
 
             <div className="flex gap-3">
               <Button variant="ghost" className="flex-1" onClick={() => setStep(2)}>

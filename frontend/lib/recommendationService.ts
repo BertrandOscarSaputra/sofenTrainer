@@ -1,7 +1,7 @@
 import api from './api';
-import type { RecommendationResponse } from './types';
+import type { RecommendationResponse, ChatRequest, ChatResponse } from './types';
 
-// ─── Mock Data ──────────────────────────────────────────────
+// ─── Mock Data (fallback development) ───────────────────────
 const MOCK_RECOMMENDATIONS: RecommendationResponse = {
   recommendations: [
     {
@@ -37,12 +37,29 @@ const MOCK_RECOMMENDATIONS: RecommendationResponse = {
 
 const USE_MOCK = false;
 
+// ─── GET Recommendations ─────────────────────────────────────
+// Endpoint: GET /api/recommendations/{userId}
 export async function getRecommendations(userId: number): Promise<RecommendationResponse> {
   if (USE_MOCK) {
-    // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
     return MOCK_RECOMMENDATIONS;
   }
   const res = await api.get<RecommendationResponse>(`/api/recommendations/${userId}`);
+  return res.data;
+}
+
+// ─── POST Chat (Adjust Schedule via Natural Language) ────────
+// Endpoint: POST /api/recommendations/chat
+// Body   : { userId, message, currentSchedule }
+// Response: { aiMessage, updatedSchedule }
+export async function sendChatMessage(payload: ChatRequest): Promise<ChatResponse> {
+  if (USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    return {
+      aiMessage: `Baik! Saya sudah menyesuaikan jadwal berdasarkan permintaanmu: "${payload.message}".`,
+      updatedSchedule: payload.currentSchedule,
+    };
+  }
+  const res = await api.post<ChatResponse>('/api/recommendations/chat', payload);
   return res.data;
 }

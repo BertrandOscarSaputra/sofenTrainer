@@ -36,8 +36,12 @@ export default function RegisterPage() {
     try {
       await register({ name, email, password });
       router.push('/login');
-    } catch {
-      setError('Registrasi gagal. Email mungkin sudah terdaftar.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Registrasi gagal. Email mungkin sudah terdaftar.');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3535',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -35,3 +35,26 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// ─── Utility: Ekstrak pesan error secara konsisten ───────────
+// Dipakai di semua catch block di seluruh aplikasi.
+//
+// Logika:
+//   - err.response === undefined  → backend tidak bisa diakses (network error)
+//   - err.response.data.message   → pesan error dari backend
+//   - fallback                    → pesan default yang diberikan
+export function getErrorMessage(err: unknown, fallback: string): string {
+  const axiosErr = err as {
+    response?: { data?: { message?: string } };
+    request?: unknown;
+  };
+
+  // Tidak ada response = server tidak bisa dijangkau
+  if (axiosErr?.request && !axiosErr?.response) {
+    return 'Tidak dapat terhubung ke server. Pastikan backend sudah berjalan.';
+  }
+
+  // Ada response = server merespons dengan error
+  return axiosErr?.response?.data?.message || fallback;
+}
+

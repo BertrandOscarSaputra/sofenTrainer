@@ -107,3 +107,13 @@ export async function markBookingDone(id: number): Promise<void> {
   }
   await api.patch(`/api/bookings/${id}/done`);
 }
+
+// ─── Booking History ─────────────────────────────────────────
+// Endpoint terpisah: riwayat sesi 3 bulan terakhir (status DONE)
+export async function getBookingHistory(userId: number): Promise<Booking[]> {
+  if (USE_MOCK) {
+    return MOCK_BOOKINGS.filter((b) => b.status === 'DONE');
+  }
+  const res = await api.get<Booking[]>(`/api/booking-history/user/${userId}`);
+  return res.data;
+}

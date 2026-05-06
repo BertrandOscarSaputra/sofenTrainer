@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   CalendarPlus,
@@ -15,16 +15,40 @@ import BookingCard from '@/components/BookingCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useBooking } from '@/hooks/useBooking';
 import { SkeletonCard } from '@/components/ui/LoadingSpinner';
+import { getBookingHistory } from '@/lib/bookingService';
+import { getErrorMessage } from '@/lib/api';
+import type { Booking } from '@/lib/types';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { bookings, isLoading, cancel, markDone } = useBooking();
+  const { bookings, isLoading, error, cancel, markDone } = useBooking();
 
+  // ─── Booking History (endpoint terpisah: GET /api/booking-history/user/{id}) ──
+  const [history, setHistory] = useState<Booking[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [historyError, setHistoryError] = useState('');
+
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      setIsLoadingHistory(true);
+      setHistoryError('');
+      try {
+        const data = await getBookingHistory(user.id);
+        setHistory(data);
+      } catch (err: unknown) {
+        setHistoryError(getErrorMessage(err, 'Gagal memuat riwayat sesi.'));
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    })();
+  }, [user?.id]);
+
+  // ─── Stats ────────────────────────────────────────────────
   const activeBookings = bookings.filter(
     (b) => b.status === 'PENDING' || b.status === 'CONFIRMED'
   );
-  const doneBookings = bookings.filter((b) => b.status === 'DONE');
-  const totalBookings = bookings.length;
+  const totalBookings = bookings.length + history.length;
 
   const today = new Date().toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -68,7 +92,7 @@ export default function DashboardPage() {
             <CheckCircle size={22} className="text-emerald-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-white">{doneBookings.length}</p>
+            <p className="text-2xl font-bold text-white">{history.length}</p>
             <p className="text-xs text-gray-500">Sesi Selesai</p>
           </div>
         </Card>
@@ -89,6 +113,13 @@ export default function DashboardPage() {
           </Button>
         </Link>
       </div>
+
+      {/* ─── Error banner booking aktif ─── */}
+      {error && (
+        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+          ⚠️ {error}
+        </div>
+      )}
 
       {/* ─── Booking Aktif ─── */}
       <div className="mb-10">
@@ -120,20 +151,24 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ─── Riwayat ─── */}
+      {/* ─── Riwayat Sesi (GET /api/booking-history/user/{userId}) ─── */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Riwayat Sesi</h2>
-        {isLoading ? (
+        {isLoadingHistory ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <SkeletonCard />
           </div>
-        ) : doneBookings.length === 0 ? (
+        ) : historyError ? (
+          <Card className="text-center py-8">
+            <p className="text-red-400 text-sm">⚠️ {historyError}</p>
+          </Card>
+        ) : history.length === 0 ? (
           <Card className="text-center py-8">
             <p className="text-gray-500 text-sm">Belum ada riwayat sesi.</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {doneBookings.map((booking) => (
+            {history.map((booking) => (
               <BookingCard key={booking.id} booking={booking} />
             ))}
           </div>

@@ -43,7 +43,7 @@ export default function TrainerCard({ trainer, onSelect, isSelected = false }: T
       {/* Rating */}
       <div className="flex items-center gap-1.5 mb-3">
         <Star size={14} className="text-amber-400 fill-amber-400" />
-        <span className="text-sm font-semibold text-amber-400">{trainer.rating.toFixed(1)}</span>
+        <span className="text-sm font-semibold text-amber-400">{(trainer.rating ?? 0).toFixed(1)}</span>
         <span className="text-xs text-gray-500 ml-1">rating</span>
       </div>
 

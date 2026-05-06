@@ -105,3 +105,22 @@ export interface RecommendationItem {
 export interface RecommendationResponse {
   recommendations: RecommendationItem[];
 }
+
+// ─── AI Chat (Recommendation Chatbot) ─────────────────────
+export interface ChatRequest {
+  userId: number;
+  message: string;
+  currentSchedule: RecommendationItem[];
+}
+
+export interface ChatResponse {
+  aiMessage: string;
+  updatedSchedule: RecommendationItem[];
+}
+
+export interface ChatMessage {
+  role: 'user' | 'ai';
+  content: string;
+  timestamp: Date;
+}
+
