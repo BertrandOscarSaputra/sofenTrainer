@@ -7,7 +7,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'ROLE_USER' | 'ROLE_TRAINER' | 'ROLE_ADMIN';
+  role: "ROLE_USER" | "ROLE_TRAINER" | "ROLE_ADMIN";
   createdAt?: string;
 }
 
@@ -24,27 +24,27 @@ export interface Trainer {
 
 // ─── Schedule ───────────────────────────────────────────────
 export type DayOfWeek =
-  | 'MONDAY'
-  | 'TUESDAY'
-  | 'WEDNESDAY'
-  | 'THURSDAY'
-  | 'FRIDAY'
-  | 'SATURDAY'
-  | 'SUNDAY';
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY"
+  | "SUNDAY";
 
-export type ScheduleStatus = 'AVAILABLE' | 'BOOKED' | 'BLOCKED';
+export type ScheduleStatus = "AVAILABLE" | "BOOKED" | "BLOCKED";
 
 export interface Schedule {
   id: number;
   trainerId: number;
   dayOfWeek: DayOfWeek;
   startTime: string; // "HH:mm"
-  endTime: string;   // "HH:mm"
+  endTime: string; // "HH:mm"
   status: ScheduleStatus;
 }
 
 // ─── Booking ────────────────────────────────────────────────
-export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'DONE';
+export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "DONE";
 
 export interface Booking {
   id: number;
@@ -119,8 +119,38 @@ export interface ChatResponse {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'ai';
+  role: "user" | "ai";
   content: string;
   timestamp: Date;
 }
 
+// ─── Admin ──────────────────────────────────────────────────
+export interface CreateTrainerRequest {
+  name: string;
+  email: string;
+  password: string;
+  bio?: string;
+  specialty: string;
+}
+
+export interface TrainerManagementResponse {
+  id: number;
+  userId: number;
+  name: string;
+  email: string;
+  bio: string;
+  specialty: string;
+  rating: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+// ─── Trainer ────────────────────────────────────────────────
+export interface TrainerProfileResponse {
+  id: number;
+  name: string;
+  bio: string;
+  specialty: string;
+  rating: number;
+  isActive: boolean;
+}

@@ -1,9 +1,26 @@
-'use client';
+"use client";
 
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import type { User, LoginRequest, RegisterRequest, AuthResponse, ApiResponse } from '@/lib/types';
-import { getToken, setToken, getStoredUser, setStoredUser, clearAuth } from '@/lib/auth';
-import api, { getErrorMessage } from '@/lib/api';
+import React, { createContext, useState, useEffect, useCallback } from "react";
+import type {
+  User,
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  ApiResponse,
+} from "@/lib/types";
+import {
+  getToken,
+  setToken,
+  getStoredUser,
+  setStoredUser,
+  clearAuth,
+} from "@/lib/auth";
+import api, { getErrorMessage } from "@/lib/api";
+
+const normalizeRole = (role: string): User["role"] => {
+  if (role.startsWith("ROLE_")) return role as User["role"];
+  return `ROLE_${role}` as User["role"];
+};
 
 interface AuthContextType {
   user: User | null;
@@ -27,6 +44,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedToken = getToken();
     const storedUser = getStoredUser();
     if (storedToken && storedUser) {
+      // Normalize role
+      if (storedUser.role) {
+        storedUser.role = normalizeRole(storedUser.role);
+      }
       setTokenState(storedToken);
       setUser(storedUser);
     }
@@ -36,23 +57,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ─── Login ────────────────────────────────────────────────
   const login = useCallback(async (data: LoginRequest) => {
     try {
-      const res = await api.post<ApiResponse<AuthResponse>>('/auth/login', data);
+      const res = await api.post<ApiResponse<AuthResponse>>(
+        "/auth/login",
+        data,
+      );
       const authData = res.data.data;
+      const userData = {
+        ...authData.user,
+        role: normalizeRole(authData.user.role),
+      };
       setToken(authData.accessToken);
-      setStoredUser(authData.user);
+      setStoredUser(userData);
       setTokenState(authData.accessToken);
-      setUser(authData.user);
+      setUser(userData);
     } catch (err: unknown) {
-      throw new Error(getErrorMessage(err, 'Email atau password salah.'));
+      throw new Error(getErrorMessage(err, "Email atau password salah."));
     }
   }, []);
 
   // ─── Register ─────────────────────────────────────────────
   const register = useCallback(async (data: RegisterRequest) => {
     try {
-      await api.post('/auth/register', data);
+      await api.post("/auth/register", data);
     } catch (err: unknown) {
-      throw new Error(getErrorMessage(err, 'Registrasi gagal. Coba lagi.'));
+      throw new Error(getErrorMessage(err, "Registrasi gagal. Coba lagi."));
     }
   }, []);
 
