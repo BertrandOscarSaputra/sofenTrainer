@@ -1,6 +1,7 @@
 package com.sofen.backend.features.booking.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,8 +16,10 @@ public class CreateBookingRequest {
     @NotNull(message = "Trainer ID tidak boleh kosong")
     private Long trainerId;
 
-    @NotNull(message = "Schedule ID tidak boleh kosong")
-    private Long scheduleId;
+    @NotNull(message = "Tanggal dan waktu booking tidak boleh kosong")
+    private LocalDateTime scheduledAt;
+
+    private Integer durationMinutes;
 
     private String notes;
 }

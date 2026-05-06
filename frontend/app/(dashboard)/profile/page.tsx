@@ -9,7 +9,10 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
-import { Mail, User } from "lucide-react";
+import { Mail, User, BookOpen, Target, Star } from "lucide-react";
+import { useEffect } from "react";
+import { trainerService } from "@/lib/trainerService";
+import type { TrainerProfileResponse } from "@/lib/types";
 
 export default function UserProfilePage() {
   const router = useRouter();
@@ -17,6 +20,24 @@ export default function UserProfilePage() {
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [trainerProfile, setTrainerProfile] = useState<TrainerProfileResponse | null>(null);
+  const [loadingTrainer, setLoadingTrainer] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === 'ROLE_TRAINER') {
+      (async () => {
+        try {
+          setLoadingTrainer(true);
+          const data = await trainerService.getMyProfile();
+          setTrainerProfile(data);
+        } catch (err) {
+          console.error("Failed to load trainer profile", err);
+        } finally {
+          setLoadingTrainer(false);
+        }
+      })();
+    }
+  }, [user]);
 
   if (authLoading) {
     return (
@@ -130,6 +151,42 @@ export default function UserProfilePage() {
                 </span>
               </div>
             </div>
+
+            {/* Trainer Specific Info */}
+            {user.role === 'ROLE_TRAINER' && trainerProfile && (
+              <div className="pt-6 border-t border-white/5 space-y-6">
+                 <div className="flex items-center gap-4">
+                    <div className="px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center gap-2">
+                       <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                       <span className="text-sm font-bold text-white">{trainerProfile.rating.toFixed(1)} Rating</span>
+                    </div>
+                    <div className="px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                       <span className="text-sm font-bold text-white">{trainerProfile.isActive ? 'Aktif' : 'Nonaktif'}</span>
+                    </div>
+                 </div>
+
+                 <div>
+                    <label className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                      <Target size={16} />
+                      Spesialisasi
+                    </label>
+                    <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white">
+                      {trainerProfile.specialty}
+                    </div>
+                 </div>
+
+                 <div>
+                    <label className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                      <BookOpen size={16} />
+                      Bio / Tentang Saya
+                    </label>
+                    <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white min-h-[100px] whitespace-pre-wrap">
+                      {trainerProfile.bio || "Belum ada bio."}
+                    </div>
+                 </div>
+              </div>
+            )}
           </div>
         </div>
       </Card>

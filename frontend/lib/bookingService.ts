@@ -77,11 +77,12 @@ export async function createBooking(data: BookingRequest): Promise<Booking> {
       userId: 1,
       trainerId: data.trainerId,
       scheduleId: data.scheduleId,
-      bookedAt: data.bookedAt,
+      scheduledAt: data.scheduledAt,
+      bookedAt: new Date().toISOString(),
       durationMinutes: data.durationMinutes || 60,
       status: 'PENDING',
       trainer: MOCK_TRAINERS.find((t) => t.id === data.trainerId),
-      schedule: MOCK_SCHEDULES.find((s) => s.id === data.scheduleId),
+      schedule: data.scheduleId ? MOCK_SCHEDULES.find((s) => s.id === data.scheduleId) : undefined,
     };
     MOCK_BOOKINGS.push(newBooking);
     return newBooking;
@@ -106,6 +107,24 @@ export async function markBookingDone(id: number): Promise<void> {
     return;
   }
   await api.patch(`/api/bookings/${id}/done`);
+}
+
+export async function getTrainerBookings(): Promise<Booking[]> {
+  if (USE_MOCK) return MOCK_BOOKINGS;
+  const res = await api.get<Booking[]>('/api/bookings/trainer');
+  return res.data;
+}
+
+export async function updateBookingStatus(id: number, newStatus: string): Promise<Booking> {
+  if (USE_MOCK) {
+    const booking = MOCK_BOOKINGS.find((b) => b.id === id);
+    if (booking) booking.status = newStatus;
+    return booking as Booking;
+  }
+  const res = await api.patch<Booking>(`/api/bookings/${id}/status`, null, {
+    params: { newStatus }
+  });
+  return res.data;
 }
 
 // ─── Booking History ─────────────────────────────────────────

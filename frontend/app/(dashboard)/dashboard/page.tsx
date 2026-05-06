@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   CalendarPlus,
   Sparkles,
@@ -20,8 +21,15 @@ import { getErrorMessage } from '@/lib/api';
 import type { Booking } from '@/lib/types';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const { bookings, isLoading, error, cancel, markDone } = useBooking();
+
+  useEffect(() => {
+    if (!authLoading && user?.role === 'ROLE_TRAINER') {
+      router.push('/trainer');
+    }
+  }, [user, authLoading, router]);
 
   // ─── Booking History (endpoint terpisah: GET /api/booking-history/user/{id}) ──
   const [history, setHistory] = useState<Booking[]>([]);

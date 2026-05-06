@@ -27,7 +27,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: LoginRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<User>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   updateUser: (updatedUser: User) => void;
@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setStoredUser(userData);
       setTokenState(authData.accessToken);
       setUser(userData);
+      return userData; // Return user data for redirection
     } catch (err: unknown) {
       throw new Error(getErrorMessage(err, "Email atau password salah."));
     }

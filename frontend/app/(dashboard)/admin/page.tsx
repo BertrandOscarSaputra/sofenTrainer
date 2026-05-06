@@ -1,21 +1,72 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader, UserPlus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, TrendingUp, AlertCircle } from "lucide-react";
+import { adminService } from "@/lib/adminService";
+import type { CreateTrainerRequest } from "@/lib/types";
 import Card from "@/components/ui/Card";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const [formData, setFormData] = useState<CreateTrainerRequest>({
+    name: "",
+    email: "",
+    password: "",
+    bio: "",
+    specialty: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     if (!isLoading && user?.role !== "ROLE_ADMIN") {
       router.push("/dashboard");
     }
   }, [user, isLoading, router]);
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      bio: "",
+      specialty: "",
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.specialty
+    ) {
+      setError("Nama, email, password, dan spesialisasi harus diisi.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await adminService.createTrainer(formData);
+      setSuccess("Trainer berhasil ditambahkan.");
+      resetForm();
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Gagal menambahkan trainer.";
+      setError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -30,80 +81,140 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-4xl font-bold text-white">Admin Dashboard</h1>
-        <p className="text-gray-400 mt-2">Kelola platform Traino</p>
+        <h1 className="text-4xl font-bold text-white">Tambah Trainer</h1>
+        <p className="text-gray-400 mt-2">
+          Buat akun trainer baru dan lengkapi profil dasarnya.
+        </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-gray-400 text-sm mb-2">Total Trainer</p>
-              <p className="text-3xl font-bold text-white">--</p>
-              <p className="text-xs text-gray-500 mt-2">Aktif di platform</p>
-            </div>
-            <Users size={32} className="text-indigo-400" />
-          </div>
-        </Card>
+      {error && (
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400">
+          {success}
+        </div>
+      )}
 
-        <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-gray-400 text-sm mb-2">Total User</p>
-              <p className="text-3xl font-bold text-white">--</p>
-              <p className="text-xs text-gray-500 mt-2">Pengguna aktif</p>
-            </div>
-            <TrendingUp size={32} className="text-purple-400" />
+      <Card className="p-6 border border-white/10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-300">
+            <UserPlus size={22} />
           </div>
-        </Card>
-
-        <Card className="p-6 bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-gray-400 text-sm mb-2">Total Booking</p>
-              <p className="text-3xl font-bold text-white">--</p>
-              <p className="text-xs text-gray-500 mt-2">Bulan ini</p>
-            </div>
-            <AlertCircle size={32} className="text-orange-400" />
+          <div>
+            <h2 className="text-lg font-semibold text-white">
+              Data Trainer Baru
+            </h2>
+            <p className="text-sm text-gray-500">
+              Akun akan dibuat dengan role trainer.
+            </p>
           </div>
-        </Card>
-      </div>
+        </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6 border border-white/10">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Quick Actions
-          </h2>
-          <div className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Nama
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                placeholder="Nama trainer"
+                className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                placeholder="email@example.com"
+                className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                placeholder="Password"
+                className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Spesialisasi
+              </label>
+              <input
+                type="text"
+                value={formData.specialty}
+                onChange={(e) =>
+                  setFormData({ ...formData, specialty: e.target.value })
+                }
+                placeholder="Fitness, Yoga, Boxing"
+                className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Bio
+            </label>
+            <textarea
+              value={formData.bio}
+              onChange={(e) =>
+                setFormData({ ...formData, bio: e.target.value })
+              }
+              placeholder="Deskripsi singkat tentang trainer"
+              rows={4}
+              className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
             <button
-              onClick={() => router.push("/admin/trainers")}
-              className="w-full px-4 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium transition-colors"
+              type="button"
+              onClick={resetForm}
+              disabled={isSubmitting}
+              className="px-5 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-60 text-white font-medium transition-colors"
             >
-              Kelola Trainer
+              Reset
             </button>
             <button
-              onClick={() => router.push("/admin/trainers")}
-              className="w-full px-4 py-3 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-medium transition-colors"
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-500 text-white font-medium transition-colors flex items-center justify-center gap-2"
             >
-              Tambah Trainer Baru
+              {isSubmitting && <Loader size={18} className="animate-spin" />}
+              Tambah Trainer
             </button>
           </div>
-        </Card>
-
-        <Card className="p-6 border border-white/10">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Recent Activity
-          </h2>
-          <div className="text-gray-400 text-sm">
-            <p>Fitur aktivitas terbaru akan ditampilkan di sini</p>
-          </div>
-        </Card>
-      </div>
+        </form>
+      </Card>
     </div>
   );
 }

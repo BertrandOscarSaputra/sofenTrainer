@@ -24,13 +24,17 @@ interface BookingCardProps {
 export default function BookingCard({ booking, onCancel, onMarkDone }: BookingCardProps) {
   const isActive = booking.status === 'PENDING' || booking.status === 'CONFIRMED';
   const trainerName = booking.trainer?.name || `Trainer #${booking.trainerId}`;
-  const scheduleDay = booking.schedule?.dayOfWeek ? dayLabels[booking.schedule.dayOfWeek] : '';
-  const scheduleTime = booking.schedule
-    ? `${booking.schedule.startTime} — ${booking.schedule.endTime}`
-    : '';
+  
+  const formattedDateTime = booking.scheduledAt ? new Date(booking.scheduledAt).toLocaleString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit'
+  }) : '';
 
   return (
-    <Card className="relative">
+    <Card className={`relative transition-all ${!isActive ? 'opacity-70 grayscale-[0.3] border-white/5' : ''}`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center border border-white/10">
@@ -47,22 +51,21 @@ export default function BookingCard({ booking, onCancel, onMarkDone }: BookingCa
       </div>
 
       <div className="space-y-2 mb-4">
-        {scheduleDay && (
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Calendar size={14} className="text-gray-500" />
-            <span>{scheduleDay}</span>
-          </div>
-        )}
-        {scheduleTime && (
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Clock size={14} className="text-gray-500" />
-            <span>{scheduleTime}</span>
+        {formattedDateTime && (
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <Calendar size={14} className="text-indigo-400" />
+            <span>{formattedDateTime}</span>
           </div>
         )}
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <Clock size={14} className="text-gray-500" />
           <span>{booking.durationMinutes} menit</span>
         </div>
+        {booking.notes && (
+          <p className="mt-3 text-xs text-gray-400 italic bg-white/5 p-2 rounded-lg border border-white/5">
+            "{booking.notes}"
+          </p>
+        )}
       </div>
 
       {isActive && (

@@ -1,25 +1,15 @@
 package com.sofen.backend.common.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
+import java.util.Base64;
 
 @Slf4j
 @Service
 public class FileStorageService {
-
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
-
-    @Value("${app.upload.url:/api/uploads}")
-    private String uploadUrl;
 
     public String uploadProfilePicture(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
@@ -37,23 +27,9 @@ public class FileStorageService {
             throw new IllegalArgumentException("Ukuran file maksimal 5MB");
         }
 
-        // Create upload directory if it doesn't exist
-        Path uploadPath = Paths.get(uploadDir, "profile-pictures");
-        Files.createDirectories(uploadPath);
-
-        // Generate unique filename
-        String filename = UUID.randomUUID() + "_" + sanitizeFilename(file.getOriginalFilename());
-        Path filepath = uploadPath.resolve(filename);
-
-        // Save file
-        Files.write(filepath, file.getBytes());
-        log.info("File uploaded: {}", filename);
-
-        // Return URL
-        return uploadUrl + "/profile-pictures/" + filename;
-    }
-
-    private String sanitizeFilename(String filename) {
-        return filename != null ? filename.replaceAll("[^a-zA-Z0-9._-]", "_") : "image.jpg";
+        String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+        String dataUrl = contentType + ";base64," + base64;
+        log.info("Profile picture encoded as Base64 data URL, size={} bytes", file.getSize());
+        return "data:" + dataUrl;
     }
 }

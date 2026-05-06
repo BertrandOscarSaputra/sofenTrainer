@@ -14,4 +14,8 @@ public interface TrainerService {
     TrainerResponse createTrainer(CreateTrainerRequest request);
 
     TrainerResponse updateTrainer(Long id, UpdateTrainerRequest request);
+
+    TrainerResponse getTrainerByUserId(Long userId);
+
+    TrainerResponse updateTrainerByUserId(Long userId, UpdateTrainerRequest request);
 }

@@ -20,6 +20,9 @@ public class BookingResponse {
     private String notes;
     private Integer durationMinutes;
     private BookingStatus status;
+    private LocalDateTime scheduledAt;
     private LocalDateTime bookedAt;
+    private String userName;
+    private String userProfilePictureUrl;
     private LocalDateTime createdAt;
 }

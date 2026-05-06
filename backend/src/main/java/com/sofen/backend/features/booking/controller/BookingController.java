@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.sofen.backend.common.security.CustomUserDetails;
 
 import java.util.List;
 
@@ -26,11 +29,22 @@ public class BookingController {
 
     private final BookingService bookingService;
 
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            return ((CustomUserDetails) authentication.getPrincipal()).getUser().getId();
+        }
+        return 1L; // Fallback
+    }
+
     @GetMapping
     public ResponseEntity<List<BookingResponse>> getBookings() {
-        // TODO: Replace hardcoded userId with authenticated user ID from JWT
-        Long currentUserId = 1L;
-        return ResponseEntity.ok(bookingService.getBookingsByUserId(currentUserId));
+        return ResponseEntity.ok(bookingService.getBookingsByUserId(getCurrentUserId()));
+    }
+
+    @GetMapping("/trainer")
+    public ResponseEntity<List<BookingResponse>> getBookingsForTrainer() {
+        return ResponseEntity.ok(bookingService.getBookingsForTrainer(getCurrentUserId()));
     }
 
     @GetMapping("/{id}")
@@ -41,9 +55,7 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
             @Valid @RequestBody CreateBookingRequest request) {
-        // TODO: Replace hardcoded userId with authenticated user ID from JWT
-        Long currentUserId = 1L;
-        BookingResponse response = bookingService.createBooking(currentUserId, request);
+        BookingResponse response = bookingService.createBooking(getCurrentUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

@@ -40,28 +40,20 @@ public class BookingServiceImpl implements BookingService {
         Trainer trainer = trainerRepository.findById(request.getTrainerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Trainer tidak ditemukan"));
 
-        Schedule schedule = scheduleRepository.findById(request.getScheduleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Jadwal tidak ditemukan"));
-
-        if (!schedule.getTrainer().getId().equals(trainer.getId())) {
-            throw new IllegalArgumentException("Jadwal ini bukan milik trainer yang dipilih");
+        if (request.getScheduledAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Waktu booking tidak boleh di masa lalu");
         }
 
-        boolean isAlreadyBooked = bookingRepository.existsByScheduleIdAndStatusIn(
-                schedule.getId(),
-                List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED)
-        );
-
-        if (isAlreadyBooked) {
-            throw new IllegalArgumentException("Maaf, jadwal ini sudah dipesan oleh orang lain.");
-        }
+        // Optional: Check for conflicts for the same trainer at the same time
+        // For simplicity, we allow multiple bookings unless we add a specific conflict check here.
 
         Booking booking = new Booking();
         booking.setUser(user);
         booking.setTrainer(trainer);
-        booking.setSchedule(schedule);
+        // schedule_id is now optional, so we don't set it here unless we have a specific reason
+        booking.setScheduledAt(request.getScheduledAt());
         booking.setBookedAt(LocalDateTime.now());
-        booking.setDurationMinutes(60);
+        booking.setDurationMinutes(request.getDurationMinutes() != null ? request.getDurationMinutes() : 60);
         booking.setNotes(request.getNotes());
         booking.setStatus(BookingStatus.PENDING);
 
@@ -94,6 +86,12 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public List<BookingResponse> getBookingsForTrainer(Long trainerUserId) {
+        return bookingRepository.findByTrainer_UserIdOrderByBookedAtDesc(trainerUserId)
+                .stream().map(this::toResponse).toList();
+    }
+
+    @Override
     public BookingResponse getBookingById(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking tidak ditemukan dengan ID: " + bookingId));
@@ -117,11 +115,14 @@ public class BookingServiceImpl implements BookingService {
                 .id(booking.getId())
                 .userId(booking.getUser().getId())
                 .trainerId(booking.getTrainer().getId())
-                .scheduleId(booking.getSchedule().getId())
+                .scheduleId(booking.getSchedule() != null ? booking.getSchedule().getId() : null)
                 .notes(booking.getNotes())
                 .durationMinutes(booking.getDurationMinutes())
                 .status(booking.getStatus())
+                .scheduledAt(booking.getScheduledAt())
                 .bookedAt(booking.getBookedAt())
+                .userName(booking.getUser().getName())
+                .userProfilePictureUrl(booking.getUser().getProfilePictureUrl())
                 .createdAt(booking.getCreatedAt())
                 .build();
     }

@@ -67,6 +67,59 @@ public class TrainerServiceImpl implements TrainerService {
         Trainer trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Trainer tidak ditemukan dengan ID: " + id));
 
+        updateTrainerFields(trainer, request);
+
+        Trainer savedTrainer = trainerRepository.save(trainer);
+        return TrainerResponse.from(savedTrainer);
+    }
+
+    @Override
+    @Transactional
+    public TrainerResponse getTrainerByUserId(Long userId) {
+        return trainerRepository.findByUserId(userId)
+                .map(TrainerResponse::from)
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan dengan ID: " + userId));
+                    
+                    if (user.getRole() != UserRole.TRAINER) {
+                        throw new ResourceNotFoundException("User bukan merupakan seorang trainer");
+                    }
+
+                    // Auto-create default profile
+                    Trainer trainer = new Trainer();
+                    trainer.setUser(user);
+                    trainer.setBio("Halo! Saya adalah trainer profesional di SofenTrainer.");
+                    trainer.setSpecialty("General Fitness");
+                    
+                    Trainer savedTrainer = trainerRepository.save(trainer);
+                    return TrainerResponse.from(savedTrainer);
+                });
+    }
+
+    @Override
+    @Transactional
+    public TrainerResponse updateTrainerByUserId(Long userId, UpdateTrainerRequest request) {
+        Trainer trainer = trainerRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Profil trainer tidak ditemukan untuk user ID: " + userId));
+
+        updateTrainerFields(trainer, request);
+        
+        // Update user fields
+        User user = trainer.getUser();
+        if (request.getName() != null) {
+            user.setName(request.getName());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        userRepository.save(user);
+
+        Trainer savedTrainer = trainerRepository.save(trainer);
+        return TrainerResponse.from(savedTrainer);
+    }
+
+    private void updateTrainerFields(Trainer trainer, UpdateTrainerRequest request) {
         if (request.getBio() != null) {
             trainer.setBio(request.getBio());
         }
@@ -78,8 +131,5 @@ public class TrainerServiceImpl implements TrainerService {
         if (request.getIsActive() != null) {
             trainer.setIsActive(request.getIsActive());
         }
-
-        Trainer savedTrainer = trainerRepository.save(trainer);
-        return TrainerResponse.from(savedTrainer);
     }
 }

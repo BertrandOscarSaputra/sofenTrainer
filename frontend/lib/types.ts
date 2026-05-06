@@ -51,20 +51,24 @@ export interface Booking {
   id: number;
   userId: number;
   trainerId: number;
-  scheduleId: number;
+  scheduleId?: number;
+  scheduledAt: string;
   bookedAt: string;
   durationMinutes: number;
   status: BookingStatus;
+  userName?: string;
+  userProfilePictureUrl?: string;
   createdAt?: string;
   trainer?: Trainer;
   schedule?: Schedule;
+  notes?: string;
 }
 
 // ─── Booking Request ────────────────────────────────────────
 export interface BookingRequest {
   trainerId: number;
-  scheduleId: number;
-  bookedAt: string;
+  scheduledAt: string;
+  scheduleId?: number;
   durationMinutes?: number;
   notes?: string;
 }
@@ -150,13 +154,17 @@ export interface TrainerManagementResponse {
 // ─── Trainer ────────────────────────────────────────────────
 export interface TrainerProfileResponse {
   id: number;
-  name: string;
+  userId: number;
+  trainerName: string;
+  email: string;
   bio: string;
   specialty: string;
   rating: number;
   isActive: boolean;
   profilePictureUrl?: string;
 }
+
+export type TrainerResponse = TrainerProfileResponse;
 
 export interface ProfilePictureResponse {
   url: string;

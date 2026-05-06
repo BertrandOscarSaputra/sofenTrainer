@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sofen.backend.common.security.CustomUserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 
 @RestController
@@ -24,6 +27,39 @@ import java.util.List;
 public class TrainerController {
 
     private final TrainerService trainerService;
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            return ((CustomUserDetails) authentication.getPrincipal()).getUser().getId();
+        }
+        return null;
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getMyProfile() {
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            return ResponseEntity.ok(trainerService.getTrainerByUserId(userId));
+        } catch (Exception e) {
+            e.printStackTrace(); // Log to console
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("message", e.getMessage(), "type", e.getClass().getName()));
+        }
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<TrainerResponse> updateMyProfile(
+            @Valid @RequestBody UpdateTrainerRequest request) {
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(trainerService.updateTrainerByUserId(userId, request));
+    }
 
     @GetMapping
     public ResponseEntity<List<TrainerResponse>> getAllActiveTrainers() {
