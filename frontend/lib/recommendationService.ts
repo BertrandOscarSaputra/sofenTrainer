@@ -35,7 +35,7 @@ const MOCK_RECOMMENDATIONS: RecommendationResponse = {
   ],
 };
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 export async function getRecommendations(userId: number): Promise<RecommendationResponse> {
   if (USE_MOCK) {

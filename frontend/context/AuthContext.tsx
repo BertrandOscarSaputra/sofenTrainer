@@ -25,7 +25,7 @@ const MOCK_USER: User = {
   role: 'ROLE_USER',
 };
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

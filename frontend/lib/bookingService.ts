@@ -36,7 +36,7 @@ const MOCK_BOOKINGS: Booking[] = [
   { id: 3, userId: 1, trainerId: 3, scheduleId: 9, bookedAt: '2026-05-01T17:00:00', durationMinutes: 60, status: 'DONE', trainer: MOCK_TRAINERS[2], schedule: MOCK_SCHEDULES[8] },
 ];
 
-const USE_MOCK = true; // Set false saat backend sudah aktif
+const USE_MOCK = false; // Set false saat backend sudah aktif
 
 // ─── Trainers ───────────────────────────────────────────────
 export async function getTrainers(): Promise<Trainer[]> {
