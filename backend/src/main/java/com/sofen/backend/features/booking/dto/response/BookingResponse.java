@@ -24,5 +24,8 @@ public class BookingResponse {
     private LocalDateTime bookedAt;
     private String userName;
     private String userProfilePictureUrl;
+    private String trainerName;
+    private String trainerProfilePictureUrl;
+    private String trainerSpecialty;
     private LocalDateTime createdAt;
 }

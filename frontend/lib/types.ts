@@ -58,6 +58,9 @@ export interface Booking {
   status: BookingStatus;
   userName?: string;
   userProfilePictureUrl?: string;
+  trainerName?: string;
+  trainerProfilePictureUrl?: string;
+  trainerSpecialty?: string;
   createdAt?: string;
   trainer?: Trainer;
   schedule?: Schedule;

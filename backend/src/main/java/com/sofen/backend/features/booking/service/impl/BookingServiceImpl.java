@@ -123,6 +123,9 @@ public class BookingServiceImpl implements BookingService {
                 .bookedAt(booking.getBookedAt())
                 .userName(booking.getUser().getName())
                 .userProfilePictureUrl(booking.getUser().getProfilePictureUrl())
+                .trainerName(booking.getTrainer().getUser().getName())
+                .trainerProfilePictureUrl(booking.getTrainer().getProfilePictureUrl())
+                .trainerSpecialty(booking.getTrainer().getSpecialty())
                 .createdAt(booking.getCreatedAt())
                 .build();
     }
