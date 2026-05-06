@@ -23,8 +23,12 @@ export default function LoginPage() {
     try {
       await login({ email, password });
       router.push('/dashboard');
-    } catch {
-      setError('Email atau password salah. Silakan coba lagi.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Email atau password salah. Silakan coba lagi.');
+      }
     } finally {
       setIsLoading(false);
     }
