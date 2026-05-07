@@ -2,6 +2,7 @@ package com.sofen.backend.features.bookinghistory.service.impl;
 
 import com.sofen.backend.domain.entity.Booking;
 import com.sofen.backend.domain.entity.BookingHistory;
+import com.sofen.backend.domain.entity.Review;
 import com.sofen.backend.features.bookinghistory.dto.response.BookingHistoryResponse;
 import com.sofen.backend.features.bookinghistory.service.BookingHistoryService;
 import com.sofen.backend.repository.BookingHistoryRepository;
@@ -17,12 +18,16 @@ import java.util.List;
 public class BookingHistoryServiceImpl implements BookingHistoryService {
 
     private final BookingHistoryRepository bookingHistoryRepository;
+    private final com.sofen.backend.repository.ReviewRepository reviewRepository;
 
     @Override
     public List<BookingHistoryResponse> getHistoryByUserId(Long userId) {
         LocalDateTime threeMonthsAgo = LocalDateTime.now().minusMonths(3);
         return bookingHistoryRepository.findCompletedUserHistory(userId, threeMonthsAgo).stream()
-                .map(BookingHistoryResponse::from)
+                .map(history -> {
+                    Review review = reviewRepository.findByBookingId(history.getBooking().getId()).orElse(null);
+                    return BookingHistoryResponse.from(history, review);
+                })
                 .toList();
     }
 
@@ -40,6 +45,6 @@ public class BookingHistoryServiceImpl implements BookingHistoryService {
         history.setCompleted(true);
 
         BookingHistory saved = bookingHistoryRepository.save(history);
-        return BookingHistoryResponse.from(saved);
+        return BookingHistoryResponse.from(saved, null);
     }
 }

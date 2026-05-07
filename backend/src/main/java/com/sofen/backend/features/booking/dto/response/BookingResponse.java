@@ -20,6 +20,15 @@ public class BookingResponse {
     private String notes;
     private Integer durationMinutes;
     private BookingStatus status;
+    private LocalDateTime scheduledAt;
     private LocalDateTime bookedAt;
+    private String userName;
+    private String userProfilePictureUrl;
+    private String trainerName;
+    private String trainerProfilePictureUrl;
+    private String trainerSpecialty;
+    private Boolean reviewed;
+    private Integer reviewRating;
+    private String reviewComment;
     private LocalDateTime createdAt;
 }

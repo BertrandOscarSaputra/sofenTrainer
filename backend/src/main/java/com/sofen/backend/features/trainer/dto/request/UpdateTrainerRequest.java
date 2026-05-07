@@ -13,4 +13,7 @@ public class UpdateTrainerRequest {
     private String specialty;
 
     private Boolean isActive;
+
+    private String name;
+    private String email;
 }

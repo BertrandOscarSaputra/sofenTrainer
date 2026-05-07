@@ -3,6 +3,7 @@ CREATE TABLE trainers (
     user_id    BIGINT       NOT NULL UNIQUE,
     bio        TEXT,
     specialty  VARCHAR(100),
+    profile_picture_url LONGTEXT,
     rating     DECIMAL(3,2) NOT NULL DEFAULT 0.00,
     is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -1,5 +1,5 @@
 // ============================================================
-// SofenTrainer — Global TypeScript Interfaces
+// Traino — Global TypeScript Interfaces
 // ============================================================
 
 // ─── User ───────────────────────────────────────────────────
@@ -7,7 +7,8 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'ROLE_USER' | 'ROLE_TRAINER' | 'ROLE_ADMIN';
+  role: "ROLE_USER" | "ROLE_TRAINER" | "ROLE_ADMIN";
+  profilePictureUrl?: string;
   createdAt?: string;
 }
 
@@ -24,46 +25,56 @@ export interface Trainer {
 
 // ─── Schedule ───────────────────────────────────────────────
 export type DayOfWeek =
-  | 'MONDAY'
-  | 'TUESDAY'
-  | 'WEDNESDAY'
-  | 'THURSDAY'
-  | 'FRIDAY'
-  | 'SATURDAY'
-  | 'SUNDAY';
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY"
+  | "SUNDAY";
 
-export type ScheduleStatus = 'AVAILABLE' | 'BOOKED' | 'BLOCKED';
+export type ScheduleStatus = "AVAILABLE" | "BOOKED" | "BLOCKED";
 
 export interface Schedule {
   id: number;
   trainerId: number;
   dayOfWeek: DayOfWeek;
   startTime: string; // "HH:mm"
-  endTime: string;   // "HH:mm"
+  endTime: string; // "HH:mm"
   status: ScheduleStatus;
 }
 
 // ─── Booking ────────────────────────────────────────────────
-export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'DONE';
+export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "DONE";
 
 export interface Booking {
   id: number;
   userId: number;
   trainerId: number;
-  scheduleId: number;
+  scheduleId?: number;
+  scheduledAt: string;
   bookedAt: string;
   durationMinutes: number;
   status: BookingStatus;
+  userName?: string;
+  userProfilePictureUrl?: string;
+  trainerName?: string;
+  trainerProfilePictureUrl?: string;
+  trainerSpecialty?: string;
+  reviewed?: boolean;
+  reviewRating?: number;
+  reviewComment?: string;
   createdAt?: string;
   trainer?: Trainer;
   schedule?: Schedule;
+  notes?: string;
 }
 
 // ─── Booking Request ────────────────────────────────────────
 export interface BookingRequest {
   trainerId: number;
-  scheduleId: number;
-  bookedAt: string;
+  scheduledAt: string;
+  scheduleId?: number;
   durationMinutes?: number;
   notes?: string;
 }
@@ -119,8 +130,67 @@ export interface ChatResponse {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'ai';
+  role: "user" | "ai";
   content: string;
   timestamp: Date;
 }
 
+// ─── Admin ──────────────────────────────────────────────────
+export interface CreateTrainerRequest {
+  name: string;
+  email: string;
+  password: string;
+  bio?: string;
+  specialty: string;
+}
+
+export interface TrainerManagementResponse {
+  id: number;
+  userId: number;
+  name: string;
+  email: string;
+  bio: string;
+  specialty: string;
+  rating: number;
+  isActive: boolean;
+  profilePictureUrl?: string;
+  createdAt: string;
+}
+
+// ─── Trainer ────────────────────────────────────────────────
+export interface TrainerProfileResponse {
+  id: number;
+  userId: number;
+  trainerName: string;
+  email: string;
+  bio: string;
+  specialty: string;
+  rating: number;
+  isActive: boolean;
+  profilePictureUrl?: string;
+}
+
+export type TrainerResponse = TrainerProfileResponse;
+
+export interface ProfilePictureResponse {
+  url: string;
+  message: string;
+}
+
+// ─── Review ──────────────────────────────────────────────────
+export interface CreateReviewRequest {
+  bookingId: number;
+  rating: number;
+  comment?: string;
+}
+
+export interface Review {
+  id: number;
+  bookingId: number;
+  userId: number;
+  userName: string;
+  trainerId: number;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}

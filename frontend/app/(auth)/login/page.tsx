@@ -21,8 +21,12 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
     try {
-      await login({ email, password });
-      router.push('/dashboard');
+      const user = await login({ email, password });
+      if (user.role === 'ROLE_TRAINER') {
+        router.push('/trainer');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
