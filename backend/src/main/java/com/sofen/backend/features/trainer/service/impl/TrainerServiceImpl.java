@@ -89,7 +89,7 @@ public class TrainerServiceImpl implements TrainerService {
                     // Auto-create default profile
                     Trainer trainer = new Trainer();
                     trainer.setUser(user);
-                    trainer.setBio("Halo! Saya adalah trainer profesional di SofenTrainer.");
+                    trainer.setBio("Halo! Saya adalah trainer profesional di Traino.");
                     trainer.setSpecialty("General Fitness");
                     
                     Trainer savedTrainer = trainerRepository.save(trainer);

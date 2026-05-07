@@ -1,16 +1,31 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { Sparkles, Brain, RefreshCw, CalendarX, Send, Bot, User } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import RecommendationCard from '@/components/RecommendationCard';
-import { SkeletonCard } from '@/components/ui/LoadingSpinner';
-import Card from '@/components/ui/Card';
-import { useAuth } from '@/hooks/useAuth';
-import { getRecommendations, sendChatMessage } from '@/lib/recommendationService';
-import type { RecommendationItem, RecommendationResponse, ChatMessage } from '@/lib/types';
-import { getErrorMessage } from '@/lib/api';
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Sparkles,
+  Brain,
+  RefreshCw,
+  CalendarX,
+  Send,
+  Bot,
+  User,
+} from "lucide-react";
+import Button from "@/components/ui/Button";
+import RecommendationCard from "@/components/RecommendationCard";
+import { SkeletonCard } from "@/components/ui/LoadingSpinner";
+import Card from "@/components/ui/Card";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  getRecommendations,
+  sendChatMessage,
+} from "@/lib/recommendationService";
+import type {
+  RecommendationItem,
+  RecommendationResponse,
+  ChatMessage,
+} from "@/lib/types";
+import { getErrorMessage } from "@/lib/api";
 
 export default function RecommendationPage() {
   const router = useRouter();
@@ -19,24 +34,26 @@ export default function RecommendationPage() {
   // ─── Recommendation State ──────────────────────────────────
   const [data, setData] = useState<RecommendationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // ─── Chat State ───────────────────────────────────────────
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState('');
+  const [chatInput, setChatInput] = useState("");
   const [isSendingChat, setIsSendingChat] = useState(false);
-  const [chatError, setChatError] = useState('');
+  const [chatError, setChatError] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // ─── Fetch Recommendations ────────────────────────────────
   const fetchRecommendations = async () => {
     setIsLoading(true);
-    setError('');
+    setError("");
     try {
       const res = await getRecommendations(user?.id || 1);
       setData(res);
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Gagal memuat rekomendasi. Silakan coba lagi.'));
+      setError(
+        getErrorMessage(err, "Gagal memuat rekomendasi. Silakan coba lagi."),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +66,7 @@ export default function RecommendationPage() {
 
   // Auto-scroll chat ke bawah saat ada pesan baru
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
   // ─── Book Handler ─────────────────────────────────────────
@@ -68,14 +85,14 @@ export default function RecommendationPage() {
 
     // Tambah pesan user ke list
     const userMsg: ChatMessage = {
-      role: 'user',
+      role: "user",
       content: message,
       timestamp: new Date(),
     };
     setChatMessages((prev) => [...prev, userMsg]);
-    setChatInput('');
+    setChatInput("");
     setIsSendingChat(true);
-    setChatError('');
+    setChatError("");
 
     try {
       const res = await sendChatMessage({
@@ -86,7 +103,7 @@ export default function RecommendationPage() {
 
       // Tambah balasan AI ke list
       const aiMsg: ChatMessage = {
-        role: 'ai',
+        role: "ai",
         content: res.aiMessage,
         timestamp: new Date(),
       };
@@ -97,14 +114,16 @@ export default function RecommendationPage() {
         setData({ recommendations: res.updatedSchedule });
       }
     } catch (err: unknown) {
-      setChatError(getErrorMessage(err, 'Gagal mengirim pesan. Silakan coba lagi.'));
+      setChatError(
+        getErrorMessage(err, "Gagal mengirim pesan. Silakan coba lagi."),
+      );
     } finally {
       setIsSendingChat(false);
     }
   };
 
   const handleChatKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendChat();
     }
@@ -116,20 +135,25 @@ export default function RecommendationPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl font-bold text-white" style={{ fontFamily: 'var(--font-heading)' }}>
+            <h1
+              className="text-3xl font-bold text-white"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
               Rekomendasi AI
             </h1>
-            <span className="px-2 py-0.5 rounded-md bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-wider">
-              Gemini
-            </span>
           </div>
           <p className="text-gray-400 text-sm">
             Jadwal latihan yang dipersonalisasi berdasarkan kebiasaanmu
           </p>
         </div>
 
-        <Button variant="secondary" size="sm" onClick={fetchRecommendations} disabled={isLoading}>
-          <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={fetchRecommendations}
+          disabled={isLoading}
+        >
+          <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
           Refresh
         </Button>
       </div>
@@ -140,10 +164,12 @@ export default function RecommendationPage() {
           <Brain size={20} className="text-white" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-white mb-1">Ditenagai Google Gemini</h3>
+          <h3 className="text-sm font-semibold text-white mb-1">Traino AI</h3>
           <p className="text-xs text-gray-400 leading-relaxed">
-            AI menganalisis riwayat booking, hari favorit, waktu latihan, dan durasi rata-rata kamu untuk
-            memberikan rekomendasi jadwal yang optimal. Semakin banyak sesi yang kamu selesaikan, semakin akurat rekomendasinya.
+            AI menganalisis riwayat booking, hari favorit, waktu latihan, dan
+            durasi rata-rata kamu untuk memberikan rekomendasi jadwal yang
+            optimal. Semakin banyak sesi yang kamu selesaikan, semakin akurat
+            rekomendasinya.
           </p>
         </div>
       </Card>
@@ -180,12 +206,19 @@ export default function RecommendationPage() {
       {!isLoading && !error && data && data.recommendations.length === 0 && (
         <Card className="text-center py-16">
           <CalendarX size={48} className="text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">Belum Ada Data</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            Belum Ada Data
+          </h3>
           <p className="text-sm text-gray-400 max-w-md mx-auto mb-6">
-            Lakukan beberapa booking dan selesaikan sesi latihanmu terlebih dahulu agar AI bisa
-            mempelajari kebiasaanmu dan memberikan rekomendasi yang akurat.
+            Lakukan beberapa booking dan selesaikan sesi latihanmu terlebih
+            dahulu agar AI bisa mempelajari kebiasaanmu dan memberikan
+            rekomendasi yang akurat.
           </p>
-          <Button variant="primary" size="md" onClick={() => router.push('/booking')}>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => router.push("/booking")}
+          >
             Buat Booking Pertama
           </Button>
         </Card>
@@ -195,7 +228,11 @@ export default function RecommendationPage() {
       {!isLoading && !error && data && data.recommendations.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
           {data.recommendations.map((rec, i) => (
-            <div key={i} className="animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
+            <div
+              key={i}
+              className="animate-slide-up"
+              style={{ animationDelay: `${i * 100}ms` }}
+            >
               <RecommendationCard
                 recommendation={rec}
                 onBook={handleBook}
@@ -217,8 +254,12 @@ export default function RecommendationPage() {
               <Bot size={16} className="text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Sesuaikan Jadwal via Chat</h2>
-              <p className="text-xs text-gray-500">Ketik permintaan dan AI akan menyesuaikan jadwalmu</p>
+              <h2 className="text-lg font-semibold text-white">
+                Sesuaikan Jadwal via Chat
+              </h2>
+              <p className="text-xs text-gray-500">
+                Ketik permintaan dan AI akan menyesuaikan jadwalmu
+              </p>
             </div>
           </div>
 
@@ -226,12 +267,14 @@ export default function RecommendationPage() {
             {/* Contoh pertanyaan */}
             {chatMessages.length === 0 && (
               <div className="mb-4">
-                <p className="text-xs text-gray-500 mb-3">Contoh yang bisa kamu tanyakan:</p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Contoh yang bisa kamu tanyakan:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    'Pindahkan jadwal Senin ke Selasa sore',
-                    'Ganti Kardio dengan Yoga',
-                    'Tambahkan sesi di hari Kamis',
+                    "Pindahkan jadwal Senin ke Selasa sore",
+                    "Ganti Kardio dengan Yoga",
+                    "Tambahkan sesi di hari Kamis",
                   ].map((example) => (
                     <button
                       key={example}
@@ -251,25 +294,30 @@ export default function RecommendationPage() {
                 {chatMessages.map((msg, i) => (
                   <div
                     key={i}
-                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                    className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                   >
                     {/* Avatar */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                      msg.role === 'ai'
-                        ? 'bg-gradient-to-br from-indigo-500 to-cyan-500'
-                        : 'bg-white/10'
-                    }`}>
-                      {msg.role === 'ai'
-                        ? <Bot size={14} className="text-white" />
-                        : <User size={14} className="text-gray-300" />
-                      }
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        msg.role === "ai"
+                          ? "bg-gradient-to-br from-indigo-500 to-cyan-500"
+                          : "bg-white/10"
+                      }`}
+                    >
+                      {msg.role === "ai" ? (
+                        <Bot size={14} className="text-white" />
+                      ) : (
+                        <User size={14} className="text-gray-300" />
+                      )}
                     </div>
                     {/* Bubble */}
-                    <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                      msg.role === 'user'
-                        ? 'bg-indigo-500/20 text-white border border-indigo-500/20 rounded-tr-sm'
-                        : 'bg-white/5 text-gray-200 border border-white/8 rounded-tl-sm'
-                    }`}>
+                    <div
+                      className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-indigo-500/20 text-white border border-indigo-500/20 rounded-tr-sm"
+                          : "bg-white/5 text-gray-200 border border-white/8 rounded-tl-sm"
+                      }`}
+                    >
                       {msg.content}
                     </div>
                   </div>
@@ -283,9 +331,18 @@ export default function RecommendationPage() {
                     </div>
                     <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/5 border border-white/8">
                       <div className="flex gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
+                          style={{ animationDelay: "0ms" }}
+                        />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
+                          style={{ animationDelay: "150ms" }}
+                        />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
+                          style={{ animationDelay: "300ms" }}
+                        />
                       </div>
                     </div>
                   </div>
@@ -321,7 +378,9 @@ export default function RecommendationPage() {
                 <Send size={16} />
               </Button>
             </div>
-            <p className="text-xs text-gray-600 mt-2">Enter untuk kirim • Shift+Enter untuk baris baru</p>
+            <p className="text-xs text-gray-600 mt-2">
+              Enter untuk kirim • Shift+Enter untuk baris baru
+            </p>
           </Card>
         </div>
       )}

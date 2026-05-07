@@ -37,13 +37,14 @@ public class RecommendationServiceImpl implements RecommendationService {
     public RecommendationResponse generateRecommendation(Long userId) {
         LocalDateTime threeMonthsAgo = LocalDateTime.now().minusMonths(3);
         List<BookingHistory> history = historyRepository.findCompletedUserHistory(userId, threeMonthsAgo);
+        List<BookingHistoryRepository.UserHabitProjection> habits = historyRepository.getUserHabitSummary(userId, threeMonthsAgo);
 
         if (history.isEmpty()) {
             log.info("No booking history found for userId={}, returning default schedule", userId);
             return RecommendationResponse.defaultSchedule();
         }
 
-        String context = buildContext(history);
+        String context = buildContext(history, habits);
         String prompt = buildPrompt(context);
 
         try {
@@ -63,8 +64,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     public RecommendationChatResponse chatAndAdjust(RecommendationChatRequest request) {
         LocalDateTime threeMonthsAgo = LocalDateTime.now().minusMonths(3);
         List<BookingHistory> history = historyRepository.findCompletedUserHistory(request.getUserId(), threeMonthsAgo);
+        List<BookingHistoryRepository.UserHabitProjection> habits = historyRepository.getUserHabitSummary(request.getUserId(), threeMonthsAgo);
         
-        String context = buildContext(history);
+        String context = buildContext(history, habits);
         String currentScheduleJson = "";
         try {
             currentScheduleJson = objectMapper.writeValueAsString(request.getCurrentSchedule());
@@ -84,13 +86,21 @@ public class RecommendationServiceImpl implements RecommendationService {
         } catch (Exception e) {
             log.error("Failed to process chat adjustment for userId={}", request.getUserId(), e);
             return new RecommendationChatResponse(
-                    "Maaf, saya sedang mengalami kendala teknis. Jadwalmu belum berubah.",
+                    buildChatFailureMessage(e),
                     request.getCurrentSchedule()
             );
         }
     }
 
-    private String buildContext(List<BookingHistory> history) {
+    private String buildChatFailureMessage(Exception exception) {
+        String errorText = exception.getMessage() == null ? "" : exception.getMessage().toLowerCase();
+        if (errorText.contains("403") || errorText.contains("denied access")) {
+            return "Layanan AI sedang tidak bisa diakses (akses proyek ditolak). Jadwalmu belum berubah.";
+        }
+        return "Maaf, saya sedang mengalami kendala teknis. Jadwalmu belum berubah.";
+    }
+
+        private String buildContext(List<BookingHistory> history, List<BookingHistoryRepository.UserHabitProjection> habits) {
         Map<String, Long> dayCount = history.stream()
                 .collect(Collectors.groupingBy(
                         BookingHistory::getDayOfWeek,
@@ -108,10 +118,55 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .average()
                 .orElse(60);
 
+        String recentSessions = history.stream()
+                .limit(5)
+                .map(this::formatRecentSession)
+                .collect(Collectors.joining(" | "));
+
+        String habitSummary = habits.stream()
+                .limit(6)
+                .map(this::formatHabitSummary)
+                .collect(Collectors.joining(" | "));
+
         return String.format(
-                "Total sesi: %d | Hari favorit: %s | Waktu favorit: %s | Durasi rata-rata: %d menit",
-                history.size(), dayCount, timeCount, (int) avgDuration
+                "Total sesi: %d | Hari favorit: %s | Waktu favorit: %s | Durasi rata-rata: %d menit | Pola habit: %s | Riwayat terbaru: %s",
+                history.size(), dayCount, timeCount, (int) avgDuration, habitSummary, recentSessions
         );
+    }
+
+    private String formatHabitSummary(BookingHistoryRepository.UserHabitProjection habit) {
+        return "%s-%s (%d sesi, rata-rata %.0f menit)".formatted(
+                formatDayLabel(habit.getDayOfWeek()),
+                formatTimeOfDayLabel(habit.getTimeOfDay()),
+                habit.getTotalSessions() == null ? 0 : habit.getTotalSessions(),
+                habit.getAverageDuration() == null ? 0.0 : habit.getAverageDuration()
+        );
+    }
+
+    private String formatRecentSession(BookingHistory bookingHistory) {
+        return "%s %s %d menit".formatted(
+                formatDayLabel(bookingHistory.getDayOfWeek()),
+                bookingHistory.getTimeOfDay().name().toLowerCase(),
+                bookingHistory.getDurationMinutes()
+        );
+    }
+
+    private String formatDayLabel(String dayOfWeek) {
+        if (dayOfWeek == null || dayOfWeek.isBlank()) {
+            return "-";
+        }
+
+        String lowerCase = dayOfWeek.toLowerCase();
+        return lowerCase.substring(0, 1).toUpperCase() + lowerCase.substring(1);
+    }
+
+    private String formatTimeOfDayLabel(String timeOfDay) {
+        if (timeOfDay == null || timeOfDay.isBlank()) {
+            return "-";
+        }
+
+        String lowerCase = timeOfDay.toLowerCase();
+        return lowerCase.substring(0, 1).toUpperCase() + lowerCase.substring(1);
     }
 
     private String buildPrompt(String context) {
@@ -120,8 +175,18 @@ public class RecommendationServiceImpl implements RecommendationService {
                 Berdasarkan kebiasaan latihan user berikut:
                 %s
 
-                Rekomendasikan jadwal latihan optimal untuk minggu depan.
-                Sertakan: hari, waktu mulai, durasi, jenis latihan, dan alasan singkat.
+                                Analisis dulu pola latihan user dari riwayatnya: hari yang paling sering dipilih, waktu yang paling sering dipakai, durasi rata-rata, dan jenis latihan yang paling cocok.
+
+                                Gunakan analisis tersebut untuk merekomendasikan jadwal latihan optimal untuk minggu depan.
+                                Sertakan: hari, waktu mulai, durasi, jenis latihan, dan alasan singkat yang merujuk pada pola riwayat user.
+
+                                Aturan rekomendasi:
+                                1. Gunakan format waktu 24 jam HH:mm.
+                                2. Reason harus menjelaskan kenapa jadwal itu cocok berdasarkan riwayat user.
+                                3. Jangan membuat waktu yang bertentangan dengan konteks riwayat.
+                                4. Jika riwayat user dominan di pagi hari, prioritaskan pagi; jika dominan sore/malam, prioritaskan itu.
+                                5. Hindari jam ekstrem (<05:00 atau >22:00).
+                                6. Jangan paksa variasi waktu jika riwayat user menunjukkan preferensi yang konsisten pada satu waktu.
 
                 Balas HANYA dalam format JSON seperti ini:
                 {
@@ -150,7 +215,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private String buildChatPrompt(String context, String currentScheduleJson, String userMessage) {
         return """
-                Kamu adalah asisten fitness pribadi AI bernama "SofenTrainer AI".
+                Kamu adalah asisten fitness pribadi AI bernama "Traino AI".
                 Tugasmu adalah merevisi jadwal latihan pengguna berdasarkan percakapan.
                 
                 === KONTEKS KEBIASAAN PENGGUNA ===
@@ -163,11 +228,12 @@ public class RecommendationServiceImpl implements RecommendationService {
                 "%s"
                 
                 ATURAN PENTING:
-                1. Analisis permintaan pengguna: apakah mereka ingin mengubah jadwal (geser hari, ubah jam, hapus sesi) atau hanya bertanya.
-                2. Jika ada perubahan jadwal, update JADWAL SAAT INI sesuai permintaan.
-                3. Berikan respons teks yang ramah, berempati, dan membantu dalam bahasa Indonesia.
-                4. Jika permintaan tidak masuk akal atau berbahaya, tolak dengan sopan dan kembalikan jadwal tanpa perubahan.
-                5. Output HANYA boleh berupa JSON valid tanpa format markdown di luar JSON.
+                                1. Analisis permintaan pengguna lalu bandingkan dengan jadwal saat ini.
+                                2. Gunakan riwayat jadwal untuk memutuskan apakah pengguna cenderung pagi, siang, sore, atau malam.
+                                3. Jika ada perubahan jadwal, update JADWAL SAAT INI sesuai permintaan dan pertahankan pola waktu yang paling masuk akal dari riwayat.
+                                4. Reason harus menyebut alasan berdasarkan riwayat pengguna, bukan asumsi umum.
+                                5. Output HANYA boleh berupa JSON valid tanpa format markdown di luar JSON.
+                                6. Gunakan format waktu 24 jam HH:mm dan hindari jam ekstrem (<05:00 atau >22:00) kecuali diminta eksplisit oleh pengguna.
                 
                 === FORMAT OUTPUT JSON YANG DIHARAPKAN ===
                 {
