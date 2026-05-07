@@ -40,7 +40,7 @@ public class BookingHistoryResponse {
                 .trainerProfilePictureUrl(history.getTrainer().getProfilePictureUrl())
                 .trainerSpecialty(history.getTrainer().getSpecialty())
                 .status(Boolean.TRUE.equals(history.getCompleted()) ? "DONE" : "CANCELLED")
-                .scheduledAt(history.getBookedAt()) // Use bookedAt as scheduled time
+                .scheduledAt(history.getBooking().getScheduledAt()) // Use actual scheduled time from booking
                 .bookedAt(history.getBooking().getBookedAt()) // Creation time of booking
                 .durationMinutes(history.getDurationMinutes())
                 .dayOfWeek(history.getDayOfWeek())

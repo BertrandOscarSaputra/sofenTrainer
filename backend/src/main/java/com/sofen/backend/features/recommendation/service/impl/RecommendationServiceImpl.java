@@ -48,6 +48,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         String prompt = buildPrompt(context);
 
         try {
+            // Add delay to respect rate limits
+            Thread.sleep(1000);
             String rawResponse = chatClient.prompt()
                     .user(prompt)
                     .call()
@@ -56,6 +58,14 @@ public class RecommendationServiceImpl implements RecommendationService {
             return parseResponse(rawResponse);
         } catch (Exception e) {
             log.error("Failed to generate AI recommendation for userId={}", userId, e);
+            String errorMsg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (errorMsg.contains("quota")) {
+                log.warn("API quota exceeded, returning default schedule for userId={}", userId);
+            } else if (errorMsg.contains("denied access") || errorMsg.contains("403")) {
+                log.warn("API access denied, returning default schedule for userId={}", userId);
+            } else {
+                log.warn("AI service unavailable, returning default schedule for userId={}", userId);
+            }
             return RecommendationResponse.defaultSchedule();
         }
     }
@@ -77,6 +87,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         String prompt = buildChatPrompt(context, currentScheduleJson, request.getMessage());
 
         try {
+            // Add delay to respect rate limits
+            Thread.sleep(1000);
             String rawResponse = chatClient.prompt()
                     .user(prompt)
                     .call()
@@ -85,6 +97,20 @@ public class RecommendationServiceImpl implements RecommendationService {
             return parseChatResponse(rawResponse);
         } catch (Exception e) {
             log.error("Failed to process chat adjustment for userId={}", request.getUserId(), e);
+            String errorMsg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (errorMsg.contains("quota")) {
+                log.warn("API quota exceeded, returning quota error for userId={}", request.getUserId());
+                return new RecommendationChatResponse(
+                        "Maaf, kuota AI sudah habis. Coba lagi dalam beberapa menit ya!",
+                        request.getCurrentSchedule()
+                );
+            } else if (errorMsg.contains("denied access") || errorMsg.contains("403")) {
+                log.warn("API access denied, returning access error for userId={}", request.getUserId());
+                return new RecommendationChatResponse(
+                        "Maaf, layanan AI sedang tidak tersedia. Silakan coba lagi nanti atau hubungi admin.",
+                        request.getCurrentSchedule()
+                );
+            }
             return new RecommendationChatResponse(
                     buildChatFailureMessage(e),
                     request.getCurrentSchedule()
@@ -215,8 +241,8 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private String buildChatPrompt(String context, String currentScheduleJson, String userMessage) {
         return """
-                Kamu adalah asisten fitness pribadi AI bernama "Traino AI".
-                Tugasmu adalah merevisi jadwal latihan pengguna berdasarkan percakapan.
+                Kamu adalah asisten fitness pribadi AI bernama "Traino AI" - ahli dalam olahraga, nutrisi, dan kesehatan.
+                Tugasmu adalah memberikan saran latihan yang komprehensif dan merevisi jadwal pengguna.
                 
                 === KONTEKS KEBIASAAN PENGGUNA ===
                 %s
@@ -228,18 +254,50 @@ public class RecommendationServiceImpl implements RecommendationService {
                 "%s"
                 
                 ATURAN PENTING:
-                                1. Analisis permintaan pengguna lalu bandingkan dengan jadwal saat ini.
-                                2. Gunakan riwayat jadwal untuk memutuskan apakah pengguna cenderung pagi, siang, sore, atau malam.
-                                3. Jika ada perubahan jadwal, update JADWAL SAAT INI sesuai permintaan dan pertahankan pola waktu yang paling masuk akal dari riwayat.
-                                4. Reason harus menyebut alasan berdasarkan riwayat pengguna, bukan asumsi umum.
-                                5. Output HANYA boleh berupa JSON valid tanpa format markdown di luar JSON.
-                                6. Gunakan format waktu 24 jam HH:mm dan hindari jam ekstrem (<05:00 atau >22:00) kecuali diminta eksplisit oleh pengguna.
+                1. JAWABAN BERBAGAI TIPE PERTANYAAN:
+                   - Jadwal: Pindahkan/ubah/tambah/hapus sesi latihan
+                   - Training advice: Teknik latihan, variasi olahraga, progresi
+                   - Nutrition: Saran makanan sebelum/sesudah latihan, diet
+                   - Recovery: Cara istirahat, stretching, sleep tips
+                   - Motivation: Tips konsistensi, goal setting, overcoming plateaus
+                   - Injury prevention: Cara aman berlatih, tanda-tanda overtraining
+                
+                2. UNTUK PERUBAHAN JADWAL:
+                   - Analisis permintaan dan bandingkan dengan jadwal saat ini
+                   - Gunakan riwayat untuk menentukan preferensi waktu pengguna
+                   - Update jadwal sesuai permintaan dengan alasan berdasarkan riwayat
+                   - Gunakan format waktu 24 jam HH:mm, hindari jam ekstrem (<05:00 atau >22:00)
+                
+                3. UNTUK SARAN TRAINING UMUM:
+                   - Berikan advice yang praktis dan evidence-based
+                   - Sesuaikan dengan level dan preferensi pengguna
+                   - Jika perlu, tanyakan clarifying question untuk memberikan saran yang lebih baik
+                   - GUNAKAN FORMAT MARKDOWN yang rapi dan mudah dibaca:
+                     * Gunakan headings (#, ##, ###) untuk struktur
+                     * Gunakan bullet points (• atau -) untuk daftar
+                     * Gunakan emojis yang relevant (🏋️, 💪, 🥗, 🎯, 📈)
+                     * Gunakan bold (**teks**) untuk penekanan
+                     * Gunakan numbered lists untuk langkah-langkah
+                     * Berikan jarak antar paragraf untuk readability
+                
+                4. FORMAT OUTPUT:
+                   - Jika ada perubahan jadwal: Output JSON dengan aiMessage dan updatedSchedule
+                   - Jika hanya saran umum: Output JSON dengan aiMessage dan updatedSchedule yang sama
+                   - HANYA output JSON valid tanpa markdown di luar JSON
+                   - aiMessage harus berisi markdown yang sudah diformat dengan baik
+                
+                === CONTOH JAWABAN ===
+                Untuk pertanyaan jadwal:
+                {"aiMessage": "✅ **Jadwal Diperbarui!**\\n\\nSesi Strength Training hari Senin sudah saya pindahkan ke Selasa jam 07:00.\\n\\n**Alasan:** Sesuai dengan pola latihan pagi kamu yang konsisten.", "updatedSchedule": [...]}
+                
+                Untuk pertanyaan training:
+                {"aiMessage": "# 🏋️‍♂️ Meningkatkan Kekuatan Upper Body\\n\\n## 🎯 Strategi Utama\\n\\n• **Focus pada compound movements**\\n• **Progressive overload** yang konsisten\\n• **Form yang tepat** lebih penting dari beban berat\\n\\n## 💪 Latihan Recommended\\n\\n1. **Bench Press** - Inti untuk kekuatan dada\\n2. **Pull-ups** - Untuk punggung yang kuat\\n3. **Overhead Press** - Bahu yang solid\\n\\n**Tip:** Mulai dengan beban yang bisa kamu kontrol dengan baik!", "updatedSchedule": [...]}
                 
                 === FORMAT OUTPUT JSON YANG DIHARAPKAN ===
                 {
-                  "aiMessage": "Tentu, sesi Cardio hari Rabumu sudah saya pindahkan ke hari Jumat jam 16:00 ya!",
+                  "aiMessage": "Jawaban dengan markdown formatting yang rapi dan mudah dibaca...",
                   "updatedSchedule": [
-                     ... array objek jadwal yang sudah diperbarui ...
+                     ... array jadwal (jika ada perubahan) atau jadwal saat ini (jika hanya saran) ...
                   ]
                 }
                 """.formatted(context, currentScheduleJson, userMessage);

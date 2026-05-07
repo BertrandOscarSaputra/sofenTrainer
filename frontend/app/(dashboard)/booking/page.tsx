@@ -61,6 +61,14 @@ function BookingContent() {
   // but we can keep the state if we want to show trainer availability info later.
   // For now, removing the automatic fetch to keep it simple.
 
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    return `${displayHour.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+  };
+
   const handleSelectTrainer = (trainer: Trainer) => {
     setSelectedTrainer(trainer);
     setSelectedDateTime('');
@@ -72,6 +80,19 @@ function BookingContent() {
       setScheduleError('Silakan pilih tanggal dan waktu latihan');
       return;
     }
+    
+    // Validate that selected time is not in the past
+    const selectedDate = new Date(selectedDateTime);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const selectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    
+    if (selectedDay.getTime() === today.getTime() && selectedDate <= now) {
+      setScheduleError('Silakan pilih waktu yang akan datang untuk hari ini');
+      return;
+    }
+    
+    setScheduleError('');
     setStep(step + 1);
   };
 
@@ -80,15 +101,20 @@ function BookingContent() {
     setIsSubmitting(true);
     setBookingError('');
     try {
-      await createBooking({
+      const bookingData = {
         trainerId: selectedTrainer.id,
         scheduledAt: new Date(selectedDateTime).toISOString(),
         durationMinutes: duration,
         notes: notes.trim() || undefined,
-      });
+      };
+      
+      console.log('Sending booking data:', bookingData);
+      
+      await createBooking(bookingData);
       setIsSuccess(true);
       setTimeout(() => router.push('/dashboard'), 2000);
     } catch (err: unknown) {
+      console.error('Booking error:', err);
       setBookingError(getErrorMessage(err, 'Booking gagal. Jadwal mungkin sudah dipesan orang lain. Silakan pilih jadwal lain.'));
     } finally {
       setIsSubmitting(false);
@@ -224,10 +250,24 @@ function BookingContent() {
         <div className="animate-fade-in">
           {/* Selected trainer info */}
           <Card className="mb-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/30 to-purple-500/30 flex items-center justify-center border border-white/10">
-              <span className="text-lg font-bold text-indigo-400">
-                {selectedTrainer.name?.[0] || '?'}
-              </span>
+            <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-indigo-500/20">
+              {selectedTrainer.avatarUrl ? (
+                <img
+                  src={selectedTrainer.avatarUrl}
+                  alt={selectedTrainer.name || 'Trainer'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`w-full h-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 flex items-center justify-center ${selectedTrainer.avatarUrl ? 'hidden' : ''}`}>
+                <span className="text-xl font-bold text-indigo-400">
+                  {selectedTrainer.name?.[0] || '?'}
+                </span>
+              </div>
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-white">{selectedTrainer.name}</p>
@@ -244,19 +284,107 @@ function BookingContent() {
             <div className="max-w-md mx-auto space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Tanggal dan Jam Sesi
+                  Tanggal Sesi
                 </label>
                 <input
-                  type="datetime-local"
-                  value={selectedDateTime}
-                  onChange={(e) => setSelectedDateTime(e.target.value)}
-                  min={new Date().toISOString().slice(0, 16)}
+                  type="date"
+                  value={selectedDateTime ? selectedDateTime.split('T')[0] : ''}
+                  onChange={(e) => {
+                    const date = e.target.value;
+                    const time = selectedDateTime ? selectedDateTime.split('T')[1] : '09:00';
+                    setSelectedDateTime(`${date}T${time}`);
+                  }}
+                  min={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
                 />
-                <p className="mt-2 text-xs text-gray-500 italic">
-                  * Pilih waktu yang sesuai dengan ketersediaan Anda dan trainer.
-                </p>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">
+                  Jam Sesi
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const dropdown = document.getElementById('time-dropdown');
+                      if (dropdown) {
+                        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                      }
+                    }}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all text-left flex justify-between items-center"
+                  >
+                    <span>{selectedDateTime ? formatTime(selectedDateTime.split('T')[1]) : '09:00 AM'}</span>
+                    <span className="text-gray-400">▼</span>
+                  </button>
+                  <div
+                    id="time-dropdown"
+                    className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-white/10 rounded-xl shadow-lg z-50 hidden"
+                    style={{ maxHeight: '200px', overflowY: 'auto' }}
+                  >
+                    {[
+                      { value: '00:00', label: '12:00 AM' },
+                      { value: '01:00', label: '01:00 AM' },
+                      { value: '02:00', label: '02:00 AM' },
+                      { value: '03:00', label: '03:00 AM' },
+                      { value: '04:00', label: '04:00 AM' },
+                      { value: '05:00', label: '05:00 AM' },
+                      { value: '06:00', label: '06:00 AM' },
+                      { value: '07:00', label: '07:00 AM' },
+                      { value: '08:00', label: '08:00 AM' },
+                      { value: '09:00', label: '09:00 AM' },
+                      { value: '10:00', label: '10:00 AM' },
+                      { value: '11:00', label: '11:00 AM' },
+                      { value: '12:00', label: '12:00 PM' },
+                      { value: '13:00', label: '01:00 PM' },
+                      { value: '14:00', label: '02:00 PM' },
+                      { value: '15:00', label: '03:00 PM' },
+                      { value: '16:00', label: '04:00 PM' },
+                      { value: '17:00', label: '05:00 PM' },
+                      { value: '18:00', label: '06:00 PM' },
+                      { value: '19:00', label: '07:00 PM' },
+                      { value: '20:00', label: '08:00 PM' },
+                      { value: '21:00', label: '09:00 PM' },
+                      { value: '22:00', label: '10:00 PM' },
+                      { value: '23:00', label: '11:00 PM' },
+                    ].map((time) => (
+                      <button
+                        key={time.value}
+                        type="button"
+                        onClick={() => {
+                          const date = selectedDateTime ? selectedDateTime.split('T')[0] : new Date().toISOString().split('T')[0];
+                          setSelectedDateTime(`${date}T${time.value}`);
+                          const dropdown = document.getElementById('time-dropdown');
+                          if (dropdown) dropdown.style.display = 'none';
+                        }}
+                        className="w-full px-4 py-2 text-left text-white hover:bg-indigo-500/20 transition-colors"
+                      >
+                        {time.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {selectedDateTime && (
+                <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                  <p className="text-sm text-indigo-300 text-center">
+                    📅 {new Date(selectedDateTime).toLocaleDateString('id-ID', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </p>
+                  <p className="text-xs text-indigo-400 text-center mt-1">
+                    🕐 {new Date(selectedDateTime).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </p>
+                </div>
+              )}
 
               {scheduleError && (
                 <p className="text-sm text-red-400">⚠️ {scheduleError}</p>
@@ -303,13 +431,15 @@ function BookingContent() {
               <div className="flex justify-between items-center py-3 border-b border-white/5">
                 <span className="text-sm text-gray-400">Waktu Latihan</span>
                 <span className="text-sm font-semibold text-white text-right">
-                  {new Date(selectedDateTime).toLocaleString('id-ID', {
+                  {new Date(selectedDateTime).toLocaleDateString('id-ID', {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'long',
-                    year: 'numeric',
+                    year: 'numeric'
+                  })} • {new Date(selectedDateTime).toLocaleTimeString('en-US', {
                     hour: '2-digit',
-                    minute: '2-digit'
+                    minute: '2-digit',
+                    hour12: true
                   })}
                 </span>
               </div>

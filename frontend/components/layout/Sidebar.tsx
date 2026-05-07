@@ -9,7 +9,6 @@ import {
   CalendarPlus,
   Sparkles,
   LogOut,
-  Dumbbell,
   Users,
   BarChart3,
 } from "lucide-react";
@@ -26,7 +25,7 @@ const getNavItems = (role?: string) => {
       ...baseItems,
       { href: "/booking", label: "Booking", icon: CalendarPlus },
       { href: "/recommendation", label: "Rekomendasi AI", icon: Sparkles },
-      { href: "/profile", label: "Profil", icon: LayoutDashboard },
+      { href: "/profile", label: "Profil", icon: Users },
     ];
   }
 
@@ -38,7 +37,7 @@ const getNavItems = (role?: string) => {
         label: "Jadwal Booking",
         icon: CalendarPlus,
       },
-      { href: "/trainer/profile", label: "Profil", icon: LayoutDashboard },
+      { href: "/trainer/profile", label: "Profil", icon: Users },
     ];
   }
 
@@ -63,9 +62,11 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-white/5">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Dumbbell size={18} className="text-white" />
-          </div>
+          <img 
+            src="/traino.png" 
+            alt="Traino Logo" 
+            className="w-9 h-9 object-contain"
+          />
           <span className="text-lg font-bold text-white tracking-tight">
             Trai<span className="text-indigo-400">no</span>
           </span>

@@ -166,10 +166,9 @@ export default function RecommendationPage() {
         <div>
           <h3 className="text-sm font-semibold text-white mb-1">Traino AI</h3>
           <p className="text-xs text-gray-400 leading-relaxed">
-            AI menganalisis riwayat booking, hari favorit, waktu latihan, dan
-            durasi rata-rata kamu untuk memberikan rekomendasi jadwal yang
-            optimal. Semakin banyak sesi yang kamu selesaikan, semakin akurat
-            rekomendasinya.
+            AI menganalisis riwayat latihanmu untuk memberikan rekomendasi jadwal optimal
+            dan menjawab berbagai pertanyaan tentang training, nutrisi, recovery, dan motivasi.
+            Semakin banyak sesi yang kamu selesaikan, semakin personal saran yang diberikan.
           </p>
         </div>
       </Card>
@@ -255,10 +254,10 @@ export default function RecommendationPage() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-white">
-                Sesuaikan Jadwal via Chat
+                Chat AI
               </h2>
               <p className="text-xs text-gray-500">
-                Ketik permintaan dan AI akan menyesuaikan jadwalmu
+                Ketik pertayaanmu dan AI akan menjawab
               </p>
             </div>
           </div>
@@ -275,6 +274,9 @@ export default function RecommendationPage() {
                     "Pindahkan jadwal Senin ke Selasa sore",
                     "Ganti Kardio dengan Yoga",
                     "Tambahkan sesi di hari Kamis",
+                    "Bagaimana cara meningkatkan kekuatan upper body?",
+                    "Apa yang harus dimakan sebelum latihan?",
+                    "Cara mengatasi plateau dalam latihan?",
                   ].map((example) => (
                     <button
                       key={example}
@@ -318,7 +320,26 @@ export default function RecommendationPage() {
                           : "bg-white/5 text-gray-200 border border-white/8 rounded-tl-sm"
                       }`}
                     >
-                      {msg.content}
+                      {msg.role === "ai" ? (
+                        <div 
+                          className="prose prose-invert prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ 
+                            __html: msg.content
+                              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                              .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                              .replace(/^# (.*$)/gm, '<h1 class="text-lg font-bold text-white mb-2">$1</h1>')
+                              .replace(/^## (.*$)/gm, '<h2 class="text-base font-semibold text-white mb-2">$1</h2>')
+                              .replace(/^### (.*$)/gm, '<h3 class="text-sm font-medium text-indigo-400 mb-1">$1</h3>')
+                              .replace(/^\d+\. (.*$)/gm, '<li class="ml-4">$1</li>')
+                              .replace(/^• (.*$)/gm, '<li class="ml-4">• $1</li>')
+                              .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
+                              .replace(/\n\n/g, '<br/><br/>')
+                              .replace(/\n/g, '<br/>')
+                          }}
+                        />
+                      ) : (
+                        msg.content
+                      )}
                     </div>
                   </div>
                 ))}
@@ -363,7 +384,7 @@ export default function RecommendationPage() {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={handleChatKeyDown}
-                placeholder="Contoh: Pindahkan jadwal hari Senin ke Selasa sore..."
+                placeholder="Tanya tentang jadwal, latihan, nutrisi, atau recovery..."
                 rows={2}
                 disabled={isSendingChat}
                 className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all text-sm resize-none disabled:opacity-50"

@@ -90,9 +90,10 @@ export default function BookingCard({
     : "";
 
   const formattedTime = booking.scheduledAt
-    ? new Date(booking.scheduledAt).toLocaleTimeString("id-ID", {
+    ? new Date(booking.scheduledAt).toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: true,
       })
     : "";
 
@@ -176,12 +177,6 @@ export default function BookingCard({
               {reviewError}
             </p>
           )}
-          <div className="text-right flex flex-col items-end gap-1">
-            <p className="text-[10px] text-gray-600 uppercase font-bold">
-              Waktu Booking
-            </p>
-            <p className="text-xs text-gray-400">{bookedDate}</p>
-          </div>
         </div>
 
         {showRatingModal && (

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Dumbbell } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 export default function Navbar() {
@@ -14,9 +14,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-shadow">
-              <Dumbbell size={18} className="text-white" />
-            </div>
+            <img 
+              src="/traino.png" 
+              alt="Traino Logo" 
+              className="w-10 h-10 object-contain"
+            />
             <span className="text-xl font-bold text-white tracking-tight">
               Trai<span className="text-indigo-400">no</span>
             </span>

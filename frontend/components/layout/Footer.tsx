@@ -9,9 +9,6 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                <Dumbbell size={16} className="text-white" />
-              </div>
               <span className="text-lg font-bold text-white">
                 Trai<span className="text-indigo-400">no</span>
               </span>
