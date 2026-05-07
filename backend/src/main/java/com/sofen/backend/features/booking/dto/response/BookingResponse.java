@@ -27,5 +27,8 @@ public class BookingResponse {
     private String trainerName;
     private String trainerProfilePictureUrl;
     private String trainerSpecialty;
+    private Boolean reviewed;
+    private Integer reviewRating;
+    private String reviewComment;
     private LocalDateTime createdAt;
 }

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Dumbbell } from 'lucide-react';
+import React from "react";
+import { Dumbbell } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -17,35 +17,48 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Platform booking latihan pribadi dengan rekomendasi jadwal berbasis AI. Temukan trainer terbaik untuk perjalanan fitnessmu.
+              Platform booking latihan pribadi dengan rekomendasi jadwal
+              berbasis AI. Temukan trainer terbaik untuk perjalanan fitnessmu.
             </p>
           </div>
 
           {/* Links */}
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Menu</h4>
+            <h4 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">
+              Menu
+            </h4>
             <ul className="space-y-2">
-              <li><a href="#features" className="text-sm text-gray-500 hover:text-indigo-400 transition-colors">Fitur</a></li>
-              <li><a href="#how-it-works" className="text-sm text-gray-500 hover:text-indigo-400 transition-colors">Cara Kerja</a></li>
-              <li><a href="#trainers" className="text-sm text-gray-500 hover:text-indigo-400 transition-colors">Trainer</a></li>
-            </ul>
-          </div>
-
-          {/* Tech */}
-          <div>
-            <h4 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Teknologi</h4>
-            <ul className="space-y-2">
-              <li className="text-sm text-gray-500">Next.js + TypeScript</li>
-              <li className="text-sm text-gray-500">Spring Boot + Spring AI</li>
-              <li className="text-sm text-gray-500">Google Gemini AI</li>
-              <li className="text-sm text-gray-500">MySQL + Flyway</li>
+              <li>
+                <a
+                  href="#features"
+                  className="text-sm text-gray-500 hover:text-indigo-400 transition-colors"
+                >
+                  Fitur
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#how-it-works"
+                  className="text-sm text-gray-500 hover:text-indigo-400 transition-colors"
+                >
+                  Cara Kerja
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#trainers"
+                  className="text-sm text-gray-500 hover:text-indigo-400 transition-colors"
+                >
+                  Trainer
+                </a>
+              </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-10 pt-6 border-t border-white/5 text-center">
           <p className="text-xs text-gray-600">
-            © {new Date().getFullYear()} Traino — Proyek Rekayasa Perangkat Lunak. Dibuat dengan ❤️
+            © {new Date().getFullYear()} Traino
           </p>
         </div>
       </div>

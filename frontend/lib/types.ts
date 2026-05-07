@@ -61,6 +61,9 @@ export interface Booking {
   trainerName?: string;
   trainerProfilePictureUrl?: string;
   trainerSpecialty?: string;
+  reviewed?: boolean;
+  reviewRating?: number;
+  reviewComment?: string;
   createdAt?: string;
   trainer?: Trainer;
   schedule?: Schedule;
@@ -172,4 +175,22 @@ export type TrainerResponse = TrainerProfileResponse;
 export interface ProfilePictureResponse {
   url: string;
   message: string;
+}
+
+// ─── Review ──────────────────────────────────────────────────
+export interface CreateReviewRequest {
+  bookingId: number;
+  rating: number;
+  comment?: string;
+}
+
+export interface Review {
+  id: number;
+  bookingId: number;
+  userId: number;
+  userName: string;
+  trainerId: number;
+  rating: number;
+  comment?: string;
+  createdAt: string;
 }

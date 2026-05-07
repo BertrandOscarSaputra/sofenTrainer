@@ -3,6 +3,7 @@ package com.sofen.backend.features.booking.service.impl;
 import com.sofen.backend.common.exception.ResourceNotFoundException;
 import com.sofen.backend.domain.entity.Booking;
 import com.sofen.backend.domain.entity.Schedule;
+import com.sofen.backend.domain.entity.Review;
 import com.sofen.backend.domain.entity.Trainer;
 import com.sofen.backend.domain.entity.User;
 import com.sofen.backend.domain.enums.BookingStatus;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final TrainerRepository trainerRepository;
     private final BookingHistoryService bookingHistoryService;
+    private final com.sofen.backend.repository.ReviewRepository reviewRepository;
 
     @Override
     @Transactional
@@ -111,6 +114,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private BookingResponse toResponse(Booking booking) {
+        Optional<Review> review = reviewRepository.findByBookingId(booking.getId());
         return BookingResponse.builder()
                 .id(booking.getId())
                 .userId(booking.getUser().getId())
@@ -126,6 +130,9 @@ public class BookingServiceImpl implements BookingService {
                 .trainerName(booking.getTrainer().getUser().getName())
                 .trainerProfilePictureUrl(booking.getTrainer().getProfilePictureUrl())
                 .trainerSpecialty(booking.getTrainer().getSpecialty())
+                .reviewed(review.isPresent())
+                .reviewRating(review.map(Review::getRating).orElse(null))
+                .reviewComment(review.map(Review::getComment).orElse(null))
                 .createdAt(booking.getCreatedAt())
                 .build();
     }

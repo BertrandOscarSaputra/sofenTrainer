@@ -1,6 +1,7 @@
 package com.sofen.backend.features.bookinghistory.dto.response;
 
 import com.sofen.backend.domain.entity.BookingHistory;
+import com.sofen.backend.domain.entity.Review;
 import com.sofen.backend.domain.enums.TimeOfDay;
 import lombok.Builder;
 import lombok.Data;
@@ -24,9 +25,12 @@ public class BookingHistoryResponse {
     private String dayOfWeek;
     private TimeOfDay timeOfDay;
     private Boolean completed;
+    private Boolean reviewed;
+    private Integer reviewRating;
+    private String reviewComment;
     private LocalDateTime createdAt;
 
-    public static BookingHistoryResponse from(BookingHistory history) {
+    public static BookingHistoryResponse from(BookingHistory history, Review review) {
         return BookingHistoryResponse.builder()
                 .id(history.getId())
                 .bookingId(history.getBooking().getId())
@@ -42,6 +46,9 @@ public class BookingHistoryResponse {
                 .dayOfWeek(history.getDayOfWeek())
                 .timeOfDay(history.getTimeOfDay())
                 .completed(history.getCompleted())
+                .reviewed(review != null)
+                .reviewRating(review != null ? review.getRating() : null)
+                .reviewComment(review != null ? review.getComment() : null)
                 .createdAt(history.getCreatedAt())
                 .build();
     }
